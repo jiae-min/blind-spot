@@ -1,0 +1,23 @@
+# 의존성·빌드 결과
+node_modules/
+dist/
+.astro/
+.wrangler/
+
+# 환경 설정 (예시·미리보기 설정만 커밋)
+.env
+.env.*
+!.env.example
+!.env.preview
+
+# 검증 전 초안 — 공개 저장소에 올리지 않음 (scripts/export-content.mjs 가 로컬에서 만듦)
+src/data/content/*.local.json
+
+# OS·편집기
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 승인 전 원고 — content/drafts/ 는 로컬·미리보기에서만 (공개 저장소에 올리지 않음, D-032)
+content/drafts/

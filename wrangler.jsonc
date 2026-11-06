@@ -1,1 +1,8 @@
-
+{
+  // Cloudflare Workers 정적 사이트 설정 — npm run build 결과(dist)를 그대로 올림
+  "name": "blind-spot",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

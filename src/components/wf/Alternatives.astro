@@ -1,0 +1,31 @@
+---
+// 전화가 어려울 때 — 문자 버튼은 문자 작성 화면만 엶(자동 전송 없음), 1366은 공식 사이트 링크
+import { ALTERNATIVES, ALT_NOTE, smsHref } from '../../data/emergency';
+---
+<div class="alts">
+  <p class="alt-note desc">{ALT_NOTE}</p>
+  <ul>
+    {ALTERNATIVES.map((a) => (
+      <li>
+        <a class="alt btn-accent" href={a.kind === 'sms' ? smsHref(a.to) : a.to} {...(a.kind === 'link' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+          <span class="alt-label">{a.label}</span>
+          <span class="alt-to mono">{a.shown}{a.kind === 'link' && ' ↗'}</span>
+        </a>
+        <p class="alt-desc">{a.note}</p>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .alt-note { margin: 0 0 var(--space-4); }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+  @media (min-width: 768px) { ul { grid-template-columns: 1fr 1fr; } }
+  li { border: 1px solid var(--line); background: #fff; }
+  .alt {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
+    min-height: 52px; padding: 10px 16px; font-size: 17px; font-weight: 700; text-decoration: none; border-bottom: 1px solid var(--line);
+  }
+  .alt-to { font-size: 15px; }
+  .alt-desc { margin: 0; padding: 10px 16px; font-size: 17px; }
+</style>

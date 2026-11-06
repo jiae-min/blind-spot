@@ -1,0 +1,141 @@
+---
+// SCR-G-001 일반 단기·장기 상세 (와이어프레임)
+// 순서(2.3 §6): 우선 행동 → 조건 선택 → 승인 결과 → 단계 → 체크리스트 → FAQ → 단기↔장기 → 근거·정정
+// 폭력 관련 케이스의 장기 경로도 이 틀을 쓰되, 체크 상태를 저장하지 않음(sensitive).
+import Slot from '../wf/Slot.astro';
+import Choice from '../wf/Choice.astro';
+import Conditions from '../wf/Conditions.astro';
+import ProgramCard from '../wf/ProgramCard.astro';
+import CenterList from '../wf/CenterList.astro';
+import Checklist from '../wf/Checklist.astro';
+import Faq from '../wf/Faq.astro';
+import GuideCard from '../wf/GuideCard.astro';
+import Region from '../wf/Region.astro';
+import { contentFor } from '../../data/content';
+import { COPY, HORIZONS, href, type CaseDef } from '../../data/cases';
+
+interface Props { c: CaseDef; h: (typeof HORIZONS)[number] }
+const { c, h } = Astro.props;
+const other = HORIZONS.find((x) => x.id !== h.id)!;
+const copy = COPY[c.id][h.id];
+const guides = contentFor(c.id, h.id, 'guide');
+const faqs = contentFor(c.id, h.id, 'faq');
+const hasDrafts = [...guides, ...faqs].some((i) => i.draft);
+const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: `b${n}`, label: '[선택지 B]' }];
+---
+<div class="wrap page">
+  {/* 구역마다 가는 선 상자 + 모서리 사각형 (.sec .tick) */}
+  <section class="sec tick opening">
+  <p class="kicker">{c.label} · {h.title}</p>
+  <h1>{copy.title}</h1>
+  <p class="lead desc">{copy.lead}</p>
+
+  {hasDrafts ? (
+    <p class="state state--draft" role="note">
+      <strong>검증 전 초안이 포함된 미리보기예요.</strong> 전문가 검토와 QA를 마치지 않은 내용이니, 실제로 이용하기 전에 해당 기관에 꼭 확인해 주세요.
+    </p>
+  ) : (guides.length + faqs.length) === 0 && (
+    <p class="state" role="note" data-state="SCR-STATE-001">
+      이 경로의 안내는 공식 자료로 확인한 뒤 게시돼요. <strong>지원 제도가 없다는 뜻은 아니에요.</strong>
+      지금은 화면 구조만 보여 드리는 시안이에요.
+    </p>
+  )}
+
+  <Slot label="지금 확인할 행동·링크" cmp="CMP-CARD-01" note="이 경로에서 가장 먼저 할 일 1~3개. 조건을 고르지 않아도 항상 보임.">
+    <ol class="first">
+      <li>[가장 먼저 할 행동 1] <span class="fake-link">[공식 링크]</span></li>
+      <li>[가장 먼저 할 행동 2]</li>
+    </ol>
+  </Slot>
+  </section>
+
+  <div class="sec tick">
+  <Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
+    <Region name={`${c.id}-${h.id}-region`} legend="어느 지역에 계신가요?" />
+    <Choice name={`${c.id}-${h.id}-c1`} legend="[조건 항목 1]" options={ab(1)} hint="[조건 설명 자리 — 자료 확정 후]" />
+    <Choice name={`${c.id}-${h.id}-c2`} legend="[조건 항목 2]" options={ab(2)} />
+  </Conditions>
+  </div>
+
+  <section class="sec tick">
+    <h2>확인된 제도·방법</h2>
+    <p class="sub desc">신청 자격과 접수 상태는 따로 표시해요. 최종 자격은 기관의 공식 심사로 정해져요.</p>
+    {guides.length > 0 ? (
+      <div class="guides">{guides.map((g, i) => <GuideCard item={g} step={guides.length > 1 ? i + 1 : undefined} />)}</div>
+    ) : (
+      <>
+        <div class="cards">
+          <ProgramCard n={1} />
+          <ProgramCard n={2} />
+        </div>
+        <Slot as="div" label="결과 없음 상태" cmp="SCR-STATE-001" note="조건에 맞는 승인 자료가 0건일 때. '지원 없음'으로 단정하지 않고 상위·공식 안내로 연결." />
+      </>
+    )}
+  </section>
+
+  <section class="sec tick">
+    <h2>가까운 기관</h2>
+    <CenterList caseId={c.id} />
+  </section>
+
+  <section class="sec tick">
+    <h2>단계별로 하면 좋아요</h2>
+    <ol class="steps">
+      {[1, 2, 3].map((n) => (
+        <li>
+          <h3>[{n}단계 행동]</h3>
+          <p>비용: <strong>비용 발생 여부 확인 필요</strong> · 기간: [확인된 기간만] · 막히면: [예비 경로]</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="sec tick">
+    <h2>준비·신청 체크리스트</h2>
+    <Checklist id={`${c.id}/${h.id}`} persist={!c.sensitive} items={['[행동 항목 1]', '[준비물 항목 2]', '[신청 항목 3]', '[진행 확인 항목 4]']} />
+  </section>
+
+  <section class="sec tick">
+    <h2>궁금할 수 있는 질문</h2>
+    <Faq items={faqs} />
+  </section>
+
+  <a class="cross btn-accent sec-after" href={href(`cases/${c.id}/${other.id}/`)}>
+    <span>{other.sub}</span>
+    <strong>{other.title} 보기 →</strong>
+  </a>
+
+  <Slot label="근거 · 확인일 · 정정 요청" cmp="SCR-U-001" note="이 페이지가 기대는 공식 출처 목록과 마지막 확인일.">
+    <p><a href={href('contact/')}>잘못된 정보 알려 주기</a></p>
+  </Slot>
+</div>
+
+<style>
+  .page { padding-top: var(--space-6); max-width: 880px; }
+  .kicker { font-weight: 700; margin: 0 0 var(--space-1); color: var(--color-brand-secondary-strong); }
+  .lead { margin: 0 0 var(--space-5); }
+  .state--draft { border-left-color: var(--color-accent-text) !important; }
+  .state { border-left: 4px solid var(--color-text); padding: 12px 16px; margin: 0 0 var(--space-5); background: #fff; }
+  .page :global(.conds) { margin: 0; }
+  .sec > h2 { margin-bottom: var(--space-5); }
+  .sec .cards { margin-bottom: var(--space-4); }
+  .first { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; font-weight: 700; }
+  .fake-link { font-weight: 400; text-decoration: underline dashed; margin-left: 6px; }
+  .block { margin: var(--space-7) 0; }
+  .sub { margin: -8px 0 var(--space-4); }
+  .cards { display: grid; gap: var(--space-4); margin-bottom: var(--space-4); }
+  @media (min-width: 768px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .steps { list-style: none; counter-reset: s; padding: 0; margin: 0; border-left: 3px solid var(--color-brand-secondary); }
+  .steps li { position: relative; padding: 0 0 var(--space-5) var(--space-5); }
+  .steps li::before {
+    content: ''; position: absolute; left: -9px; top: 6px; width: 15px; height: 15px;
+    background: var(--color-canvas); border: 3px solid var(--color-brand-secondary-strong);
+  }
+  .steps h3 { font-size: 20px; margin-bottom: 4px; }
+  .steps p { margin: 0; }
+  .cross {
+    display: flex; flex-direction: column; gap: 2px; margin: var(--space-7) 0; padding: var(--space-4) var(--space-5);
+    background: var(--color-brand-secondary-strong); color: var(--color-on-strong); text-decoration: none; font-size: 18px;
+  }
+  .cross span { font-size: 15px; }
+</style>

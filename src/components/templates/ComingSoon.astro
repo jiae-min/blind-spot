@@ -1,0 +1,38 @@
+---
+// 아직 공개하지 않은 케이스(ready:false)의 상세 자리 — 상세 페이지 오프닝 구역(.sec .tick)과 같은 형식
+import { COMING_SOON, CASES, HORIZONS, href, type CaseDef } from '../../data/cases';
+
+interface Props { c: CaseDef; h?: (typeof HORIZONS)[number] }
+const { c, h } = Astro.props;
+const ready = CASES.filter((x) => x.ready);
+---
+<div class="wrap page">
+  <section class="sec tick opening">
+    <p class="kicker">{h ? `${c.label} · ${h.title}` : c.label}</p>
+    <h1>{COMING_SOON.title}</h1>
+    <p class="lead desc">{COMING_SOON.lead}</p>
+  </section>
+  {ready.length > 0 && (
+    <section class="sec tick">
+      <h2>지금 볼 수 있는 안내</h2>
+      <ul class="links">
+        {ready.flatMap((r) => HORIZONS.map((x) => (
+          <li><a class="go btn-accent" href={href(`cases/${r.id}/${x.id}/`)}>{r.label} · {x.title} <span class="mono">({x.sub})</span><span class="arrow" aria-hidden="true">→</span></a></li>
+        )))}
+        <li><a class="go btn-accent" href={href('help/')}>긴급 도움<span class="arrow" aria-hidden="true">→</span></a></li>
+      </ul>
+    </section>
+  )}
+</div>
+
+<style>
+  .page { padding-top: var(--space-6); max-width: 880px; }
+  .kicker { font-weight: 700; margin: 0 0 var(--space-1); color: var(--color-brand-secondary-strong); }
+  .lead { margin: 0; }
+  .sec h2 { margin-bottom: var(--space-4); }
+  .links { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); }
+  .links li + li { border-top: 1px solid var(--line); }
+  .go { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; font-weight: 700; text-decoration: none; }
+  .go .mono { font-weight: 500; font-size: 14px; }
+  .go .arrow { margin-left: auto; font-family: var(--font-mono); }
+</style>

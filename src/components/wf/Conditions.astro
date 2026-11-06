@@ -1,0 +1,46 @@
+---
+// 조건 선택 묶음 (SCR-G-001 조건 영역 / SCR-S-001 필요시 선택)
+// general: '모르겠어요'를 고르면 '추가 확인' 상태를 알려 줌 (불일치로 처리하지 않음, 3.3 §6)
+// safe: 선택 요약·상태 문구를 만들지 않음 (1.4 §7 선택 조건 요약 카드 금지)
+interface Props { mode: 'general' | 'safe'; title?: string; intro?: string }
+const { mode, title, intro } = Astro.props;
+---
+<section class="conds" data-conds={mode}>
+  {title && <h2>{title}</h2>}
+  {intro && <p class="intro desc">{intro}</p>}
+  <slot />
+  {mode === 'general' && (
+    <p class="status" data-status aria-live="polite" hidden>
+      '모르겠어요'를 고른 조건은 <strong>추가 확인 필요</strong>로 남겨 둬요. 맞지 않는다고 처리하지 않아요.
+    </p>
+  )}
+  <button type="button" class="clear btn-accent" data-clear>선택 지우기</button>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-conds]').forEach((root) => {
+    const radios = [...root.querySelectorAll<HTMLInputElement>('input[type=radio]')];
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const sync = () => {
+      if (status) status.hidden = !radios.some((r) => r.checked && r.value === 'unknown');
+    };
+    radios.forEach((r) => r.addEventListener('change', sync));
+    root.querySelector('[data-clear]')?.addEventListener('click', () => {
+      radios.forEach((r) => (r.checked = false));
+      sync();
+    });
+    // bfcache로 돌아왔을 때 이전 선택이 남지 않게
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) { radios.forEach((r) => (r.checked = false)); sync(); }
+    });
+  });
+</script>
+
+<style>
+  .conds { margin: var(--space-7) 0; }
+  .intro { margin: 0 0 var(--space-5); }
+  .status { border-left: 4px solid var(--color-brand-secondary-strong); padding: 8px 12px; margin: 0 0 var(--space-4); background: rgba(123, 158, 137, .12); }
+  .conds { display: flex; flex-direction: column; }
+  .conds > :not(.clear) { align-self: stretch; }
+  .clear { align-self: flex-end; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
+</style>

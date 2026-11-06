@@ -1,0 +1,337 @@
+---
+// PC·태블릿 가로 메인 (SCR-D-001): 지상 3층 + 다락 주택 단면도 (DECISIONS D-006, D-010)
+// 도면: src/assets/house-section.inner.svg (사용자 제공 도면에서 메타데이터·뷰어용 호버 레이어만 뺀 것)
+// 활성 방 5곳만 링크. 방 클릭 → 그 방으로 줌인 → 같은 화면에서 케이스 이름 + 단기/장기 버튼
+// 스타일·모션은 heronaiapp.com을 따름: 가는 선 프레임·모서리 +, 주황 스캔 선이 지나가며 도면이 드러나는 진입, 칸 전체를 채우는 호버
+// JS가 없으면 방 링크가 그대로 케이스 페이지로 이동.
+import houseInner from '../assets/house-section.inner.svg?raw';
+import { CASES, COMING_SOON, HIGHLIGHTS, HORIZONS, href, type CaseId } from '../data/cases';
+
+type RoomDef = {
+  id: CaseId | 'help';
+  svg: 'study' | 'bed2' | 'master' | 'kitchen' | 'entrance'; // 도면 속 방 이름 (가구 그룹 data-room)
+  room: string;
+  tag: string;                                // 작은 고정폭 라벨
+  x: number; y: number; w: number; h: number; // 방 영역 (도면 좌표, viewBox 1500×1000)
+};
+const ROOMS: RoomDef[] = [
+  { id: 'livelihood-education', svg: 'study', room: '3층 공부방', tag: '3F · STUDY', x: 168, y: 252, w: 232, h: 176 },
+  { id: 'sexual-violence', svg: 'bed2', room: '2층 침실', tag: '2F · BEDROOM', x: 168, y: 468, w: 232, h: 176 },
+  { id: 'domestic-violence', svg: 'master', room: '2층 안방', tag: '2F · MASTER', x: 1082, y: 486, w: 250, h: 158 },
+  { id: 'family-care', svg: 'kitchen', room: '1층 주방·식당', tag: '1F · KITCHEN', x: 724, y: 684, w: 340, h: 176 },
+  { id: 'help', svg: 'entrance', room: '1층 현관', tag: '1F · ENTRANCE', x: 412, y: 668, w: 300, h: 192 },
+];
+const labelOf = (id: RoomDef['id']) => (id === 'help' ? '긴급 도움' : CASES.find((c) => c.id === id)!.label);
+const urlOf = (id: RoomDef['id']) => (id === 'help' ? href('help/') : href(`cases/${id}/`));
+const VB = { x: 20, y: 0, w: 1460, h: 973.33 }; // 도면 바깥 여백을 잘라낸 보기 영역 (3:2)
+const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
+---
+<div class="house-stage" id="house-stage">
+  <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
+  <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+
+  <svg class="house-svg" id="house-svg" viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`} aria-hidden="true" focusable="false"
+       xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="square" stroke-linejoin="miter">
+    {/* 호버 시 방 전체를 강조색으로 채우는 면 (도면 선 아래) */}
+    <g class="room-fills" stroke="none">
+      {ROOMS.map((r) => <rect class="rf" data-room={r.svg} x={r.x} y={r.y} width={r.w} height={r.h} />)}
+    </g>
+    <Fragment set:html={houseInner.replace(/<!--[\s\S]*?-->/g, '')} />
+  </svg>
+
+  {/* 진입 연출: 주황 스캔 선 + 진행률 */}
+  <div class="scan" id="house-scan" aria-hidden="true"><span class="scan-pct mono" id="house-pct">0%</span></div>
+
+  {/* 활성 방: 실제 링크 (키보드·화면낭독기 접근 가능) */}
+  <nav class="rooms" aria-label="집에서 상황 고르기">
+    {ROOMS.map((r) => (
+      <a class:list={['room', { 'room--help': r.id === 'help' }]} href={urlOf(r.id)} data-room={r.id} data-svg={r.svg}
+         style={`left:${pct(r.x - VB.x, VB.w)};top:${pct(r.y - VB.y, VB.h)};width:${pct(r.w, VB.w)};height:${pct(r.h, VB.h)}`}>
+        <span class="room-label">{labelOf(r.id)}</span>
+        <span class="sr-only"> — {r.room}</span>
+      </a>
+    ))}
+  </nav>
+
+  {/* 줌인 후: 같은 화면에서 단기/장기 선택 (CMP-BTN-02) */}
+  {CASES.map((c) => {
+    const r = ROOMS.find((x) => x.id === c.id)!;
+    return (
+      <section class="zoom-panel" data-panel={c.id} data-sensitive={c.sensitive ? "" : undefined} hidden aria-labelledby={`zoom-${c.id}`}>
+        <p class="mono tag">{r.tag}</p>
+        <h2 id={`zoom-${c.id}`} tabindex="-1">{c.label}</h2>
+        {!c.ready ? (
+          <div class="soon">
+            <p class="soon-title">{COMING_SOON.title}</p>
+            <p class="soon-lead">{COMING_SOON.lead}</p>
+          </div>
+        ) : (
+        <div class="bubbles">
+          {HORIZONS.map((h) => (
+            <a class="bubble btn-accent" href={href(`cases/${c.id}/${h.id}/`)}>
+              <span class="b-sub mono">{h.sub}</span>
+              <strong class="b-title">{h.title}</strong>
+              <ul class="b-list">
+                {HIGHLIGHTS[c.id][h.id].map((t) => <li>{t}</li>)}
+              </ul>
+              <span class="b-go" aria-hidden="true">자세히 보기 →</span>
+            </a>
+          ))}
+        </div>
+        )}
+      </section>
+    );
+  })}
+  <button type="button" class="zoom-back btn-accent" id="zoom-back" hidden><span class="mono-arrow" aria-hidden="true">←</span> 집 전체 보기</button>
+</div>
+
+<style>
+  .house-stage {
+    --label-size: 18px;
+    --label-pad: 12px; /* 방 선과 맞물리지 않게 */
+    position: relative; margin: 0 auto; overflow: hidden;
+    width: 100%; aspect-ratio: 3 / 2;
+    border: 1px dashed var(--line);
+  }
+  /* 모서리 + 표시 */
+  .corner { position: absolute; width: 13px; height: 13px; z-index: 3; pointer-events: none; }
+  .corner::before, .corner::after { content: ''; position: absolute; background: var(--color-text); }
+  .corner::before { left: 6px; top: 0; width: 1px; height: 13px; }
+  .corner::after { top: 6px; left: 0; height: 1px; width: 13px; }
+  .tl { left: 2px; top: 2px; } .tr { right: 2px; top: 2px; } .bl { left: 2px; bottom: 2px; } .br { right: 2px; bottom: 2px; }
+
+  .house-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; color: var(--color-text); }
+
+  /* 도면 선 굵기 (제공 도면의 값). 줌해도 선 굵기는 그대로 */
+  .house-svg :global(*) { vector-effect: non-scaling-stroke; }
+  .house-svg :global(.o) { fill: transparent; } /* 가구 면에 바탕색을 두지 않음 → 호버 때 방 전체가 고르게 강조색 */
+  .house-svg :global(.cf) { fill: var(--color-canvas); }
+  .house-svg :global(.u-stroke) { stroke-width: 5px; }
+  /* 현관 계단 단면: 바탕색 없이 선만 (호버 때 방 색이 그대로 보이게) */
+  .house-svg :global(.stair-cut) { fill: transparent; stroke-width: 2.5px; }
+  .house-svg :global(.w-ground) { stroke-width: 4px; }
+  .house-svg :global(.w-beyond) { stroke-width: 1.1px; }
+  .house-svg :global(.w-furn) { stroke-width: 0.7px; }
+  .house-svg :global(.w-layer) { stroke-width: 0.56px; }
+  .rf { fill: transparent; transition: fill var(--t) var(--ease); }
+
+  /* 호버: 방 전체를 불투명 강조색으로 */
+  .house-stage:has(.room[data-svg='study']:is(:hover, :focus-visible)) .rf[data-room='study'],
+  .house-stage:has(.room[data-svg='bed2']:is(:hover, :focus-visible)) .rf[data-room='bed2'],
+  .house-stage:has(.room[data-svg='master']:is(:hover, :focus-visible)) .rf[data-room='master'],
+  .house-stage:has(.room[data-svg='kitchen']:is(:hover, :focus-visible)) .rf[data-room='kitchen'],
+  .house-stage:has(.room[data-svg='entrance']:is(:hover, :focus-visible)) .rf[data-room='entrance'] {
+    fill: var(--color-accent);
+  }
+
+  /* 진입 연출 (heronaiapp.com 프리로더 방식): 주황 선이 위→아래로 지나가며 도면이 드러남 */
+  .scan { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--color-accent); z-index: 2; pointer-events: none; opacity: 0; }
+  .scan-pct { position: absolute; left: 12px; bottom: 4px; color: var(--color-accent-text); }
+  @media (prefers-reduced-motion: no-preference) {
+    .house-stage.intro .house-svg { animation: reveal 1.6s var(--ease) both; }
+    .house-stage.intro .scan { animation: scan 1.6s var(--ease) both; }
+    .house-stage.intro .room-label { animation: fade .5s ease-out 1.5s both; }
+  }
+  @keyframes reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes scan { 0% { top: 0; opacity: 1; } 92% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* 활성 방 */
+  .room { position: absolute; display: block; text-decoration: none; outline: none; }
+  .room:focus-visible { outline: 3px solid var(--color-text); outline-offset: -3px; }
+  /* 이름표: 방 안에 들어가는 가장 큰 h 크기(32/24/18/16px)를 스크립트가 고름 */
+  .room-label {
+    position: absolute; top: var(--label-pad); right: var(--label-pad); white-space: nowrap;
+    font-size: var(--label-size); font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; padding: .15em .45em;
+    background: var(--color-canvas); color: var(--color-text); border: 0; /* 이름표 상자 선 없음 */
+    transition: background-color var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease);
+  }
+  .room:hover .room-label, .room:focus-visible .room-label {
+    background: transparent; border-color: transparent; color: var(--color-on-strong);
+  }
+  .room--help .room-label { background: var(--color-emergency); border-color: var(--color-emergency); color: var(--color-on-strong); }
+  .room--help:hover .room-label, .room--help:focus-visible .room-label { background: var(--color-emergency); border-color: var(--color-emergency); }
+
+  /* 줌 상태 */
+  .rooms { transition: opacity .2s; }
+  .house-stage.zoomed .rooms { opacity: 0; pointer-events: none; }
+  /* 줌인 화면: 방을 꽉 채우는 창 (도면이 옅게 비침) */
+  .zoom-panel {
+    position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column;
+    padding: 100px var(--space-7) var(--space-7); background: rgba(251, 250, 248, .93);
+  }
+  /* display:flex가 hidden 속성을 덮어쓰지 않도록 (닫힌 창은 반드시 숨김) */
+  .zoom-panel[hidden] { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .zoom-panel:not([hidden]) { animation: panel-in .5s var(--ease) both; }
+  }
+  @keyframes panel-in { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+  .tag { margin: 0 0 6px; color: var(--color-accent-text); }
+  .zoom-panel h2 { font-size: 32px; margin: 0 0 var(--space-6); }
+  .zoom-panel h2:focus { outline: none; }
+  /* 제작 중 케이스: 말풍선 대신 문구 상자 */
+  .soon { border: 1px solid var(--color-brand-secondary-strong); background: var(--color-brand-secondary-strong); color: var(--color-on-strong); padding: var(--space-7) var(--space-6); }
+  .soon p { margin: 0; }
+  .soon-title { font-size: 28px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-3) !important; }
+  .soon-lead { font-size: 18px; font-weight: 500; }
+  .bubbles { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; gap: var(--space-6); padding-bottom: 20px; }
+  /* 말풍선: 사각형 + 아래 삼각 꼬리 (CMP-BTN-02), 안에 받을 수 있는 도움 목록 */
+  .bubble {
+    position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left;
+    padding: var(--space-6); text-decoration: none; border: 1px solid var(--color-brand-secondary-strong);
+    background: var(--color-brand-secondary-strong); color: var(--color-on-strong);
+  }
+  .bubble::after {
+    content: ''; position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%);
+    border: 20px solid transparent; border-bottom: 0; border-top-color: var(--color-brand-secondary-strong);
+    transition: border-color var(--t) var(--ease);
+  }
+  .bubble:hover::after, .bubble:focus-visible::after { border-top-color: var(--color-accent); }
+  .b-sub { opacity: .85; }
+  .b-title { font-size: 28px; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: var(--space-4); }
+  .b-list { list-style: none; margin: 0; padding: 0; width: 100%; border-top: 1px solid rgba(251, 250, 248, .35); }
+  .b-list li { padding: 10px 0; border-bottom: 1px solid rgba(251, 250, 248, .35); font-size: 18px; font-weight: 500; }
+  .b-list li::before { content: '—'; margin-right: 10px; opacity: .7; }
+  .b-go { margin-top: auto; padding-top: var(--space-4); font-weight: 700; align-self: flex-end; }
+  /* 집 전체 보기: 기존(44px·16px)의 1.5배 */
+  .zoom-back {
+    position: absolute; left: 0; top: 0; z-index: 3; min-height: 66px; padding: 0 27px;
+    border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--color-canvas); font: inherit; font-size: 24px; font-weight: 700; color: inherit; cursor: pointer;
+  }
+  .mono-arrow { font-family: var(--font-mono); }
+</style>
+
+<script>
+  // 방 클릭 → 그 방으로 줌인(viewBox 애니메이션) → 단기/장기 말풍선 표시.
+  // 주소는 케이스 URL로 바꿔 두어(history.pushState) 뒤로 가기 = 집 전체로 복귀. 새로고침하면 케이스 페이지가 열림.
+  const stage = document.getElementById('house-stage');
+  const svg = document.getElementById('house-svg') as SVGSVGElement | null;
+  const back = document.getElementById('zoom-back') as HTMLButtonElement | null;
+  const pctEl = document.getElementById('house-pct');
+  const HOME = location.pathname;
+  const HOME_TITLE = document.title;
+  const FULL = [20, 0, 1460, 973.33];
+  let current = [...FULL];
+  let openId: string | null = null;
+  const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── 이름표 크기: 모든 방 안에 들어가는 가장 큰 h 크기 (h2 32 → h3 24 → h4 18 → h5 16)
+  const SIZES = [32, 24, 18, 16];
+  const fitLabels = () => {
+    if (!stage || !stage.offsetWidth) return;
+    const rooms = [...stage.querySelectorAll<HTMLElement>('a.room')];
+    for (const size of SIZES) {
+      stage.style.setProperty('--label-size', `${size}px`);
+      const ok = rooms.every((a) => {
+        const r = a.getBoundingClientRect(), l = a.querySelector('.room-label')!.getBoundingClientRect();
+        return l.left >= r.left + 12 && l.bottom <= r.bottom - 12;
+      });
+      if (ok) return;
+    }
+  };
+  if (stage) {
+    new ResizeObserver(fitLabels).observe(stage);
+    document.fonts?.ready.then(fitLabels);
+  }
+
+  // ── 진입 연출: 스캔 선과 함께 0→100% (첫 방문 화면에서만, 클릭은 막지 않음)
+  if (stage && !reduce()) {
+    stage.classList.add('intro');
+    const start = performance.now(), dur = 1600;
+    const ease = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / dur);
+      if (pctEl) pctEl.textContent = `${Math.round(ease(t) * 100)}%`;
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // ── 줌
+  const animate = (target: number[], done?: () => void) => {
+    if (!svg) return;
+    if (reduce()) { current = target; svg.setAttribute('viewBox', target.join(' ')); done?.(); return; }
+    const from = [...current], start = performance.now(), dur = 700;
+    const ease = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / dur), k = ease(t);
+      current = from.map((f, i) => f + (target[i] - f) * k);
+      svg.setAttribute('viewBox', current.join(' '));
+      t < 1 ? requestAnimationFrame(step) : done?.();
+    };
+    requestAnimationFrame(step);
+  };
+
+  // 방 영역(도면 좌표)을 화면 비율 3:2로 감싸는 viewBox
+  const boxFor = (a: HTMLElement) => {
+    const s = a.style;
+    const x = FULL[0] + parseFloat(s.left) * FULL[2] / 100, y = FULL[1] + parseFloat(s.top) * FULL[3] / 100;
+    const w = parseFloat(s.width) * FULL[2] / 100, h = parseFloat(s.height) * FULL[3] / 100;
+    let vw = w * 1.15, vh = h * 1.15;
+    if (vw / vh > 1.5) vh = vw / 1.5; else vw = vh * 1.5;
+    return [x + w / 2 - vw / 2, y + h / 2 - vh / 2, vw, vh];
+  };
+
+  const panels = () => [...document.querySelectorAll<HTMLElement>('.zoom-panel')];
+
+  function open(id: string, push: boolean) {
+    const a = stage?.querySelector<HTMLAnchorElement>(`a.room[data-room="${id}"]`);
+    if (!stage || !a) return;
+    openId = id;
+    stage.classList.remove('intro');
+    stage.classList.add('zoomed');
+    if (push) history.pushState({ room: id }, '', a.href);
+    // 집 영역 맨 위가 헤더 바로 아래에 오도록 (줌 화면 전체가 보이게)
+    const top = stage.getBoundingClientRect().top + window.scrollY - 56;
+    if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top, behavior: reduce() ? 'auto' : 'smooth' });
+    // 폭력 관련 방은 탭 제목을 중립 문구로 (D-028)
+    const sens = document.querySelector(`.zoom-panel[data-panel="${id}"]`)?.hasAttribute("data-sensitive");
+    document.title = sens ? "blind spot · 안내" : `${document.getElementById(`zoom-${id}`)?.textContent} | blind spot`;
+    animate(boxFor(a), () => {
+      if (openId !== id) return;
+      panels().forEach((p) => (p.hidden = p.dataset.panel !== id));
+      back!.hidden = false;
+      document.getElementById(`zoom-${id}`)?.focus();
+    });
+  }
+
+  function close() {
+    if (!stage || openId === null) return;
+    const id = openId;
+    openId = null;
+    document.title = HOME_TITLE;
+    panels().forEach((p) => (p.hidden = true));
+    back!.hidden = true;
+    animate(FULL, () => {
+      stage.classList.remove('zoomed');
+      stage.querySelector<HTMLAnchorElement>(`a.room[data-room="${id}"]`)?.focus({ preventScroll: true });
+    });
+  }
+
+  // 닫기는 항상 뒤로 가기 경로로 → 주소와 화면이 어긋나지 않음
+  const requestClose = () => (history.state?.room ? history.back() : close());
+
+  stage?.querySelectorAll<HTMLAnchorElement>('a.room').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      if (a.dataset.room === 'help') return; // 긴급 도움은 줌 없이 바로 이동
+      e.preventDefault();
+      open(a.dataset.room!, true);
+    });
+  });
+  back?.addEventListener('click', requestClose);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openId) requestClose(); });
+  window.addEventListener('popstate', (e) => {
+    const id = e.state?.room;
+    if (id) open(id, false);
+    else if (location.pathname === HOME) close();
+  });
+  // bfcache로 돌아왔을 때 줌 상태가 남아 있으면 정리
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted && !history.state?.room && openId) {
+      openId = null; current = [...FULL]; svg?.setAttribute('viewBox', FULL.join(' '));
+      stage?.classList.remove('zoomed'); panels().forEach((p) => (p.hidden = true)); if (back) back.hidden = true;
+    }
+  });
+</script>

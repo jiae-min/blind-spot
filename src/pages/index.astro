@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import HouseSection from '../components/HouseSection.astro';
+import { CASES, href } from '../data/cases';
+const LEAD = '필요한 도움을 바로 찾을 수 있도록 안내할게요.';
+const TITLE = '막막할 때, 여기서부터.';
+---
+<Base title={TITLE} description={LEAD} quickExit>
+  {/* PC·태블릿 가로 (SCR-D-001): 도면 위, 제목은 아래 줄 (heronaiapp.com 배치) */}
+  <div class="only-house">
+    <div class="house-page">
+      <HouseSection />
+      <div class="hero-bar">
+        <h1>{TITLE}</h1>
+        <p class="lead">{LEAD}</p>
+        <p class="hint mono">방을 고르세요 <span aria-hidden="true">→</span></p>
+      </div>
+    </div>
+  </div>
+
+  {/* 모바일·태블릿 세로 (SCR-M-001) */}
+  <div class="only-mobile wrap">
+    <h1 class="title">{TITLE}</h1>
+    <p class="lead-m">{LEAD}</p>
+    <ul class="case-list">
+      {CASES.map((c) => (
+        <li><a class="case-btn btn-accent" href={href(`cases/${c.id}/`)}><span>{c.prompt}</span><span class="arrow" aria-hidden="true">→</span></a></li>
+      ))}
+    </ul>
+    <a class="help-btn btn-accent" href={href('help/')}>긴급한 도움이 필요하신가요? <span class="arrow" aria-hidden="true">→</span></a>
+  </div>
+</Base>
+
+<style>
+  .house-page { padding: var(--space-4) var(--space-6) 0; }
+  .hero-bar {
+    display: grid; grid-template-columns: 1.2fr 1fr auto; align-items: stretch;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: var(--space-4);
+  }
+  .hero-bar h1 { font-size: 40px; line-height: 1.1; white-space: nowrap; align-self: center; margin: 0; padding: var(--space-4) var(--space-4) var(--space-4) 0; }
+  .hero-bar .lead { margin: 0; padding: var(--space-4); border-left: 1px solid var(--line); font-size: 15px; align-self: stretch; }
+  .hero-bar .hint { margin: 0; padding: var(--space-4); border-left: 1px solid var(--line); color: var(--color-accent-text); white-space: nowrap; }
+  .arrow { font-family: var(--font-mono); }
+
+  .title { margin-top: var(--space-6); }
+  .lead-m { margin: 0 0 var(--space-5); }
+  /* 모바일: 케이스 버튼은 기본형(테두리), 긴급 도움은 채운 형 */
+  .case-list { list-style: none; padding: 0; margin: 0 0 var(--space-5); border: 1px solid var(--color-text); }
+  .case-list li + li { border-top: 1px solid var(--color-text); }
+  .case-btn {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 68px; padding: 14px 20px; font-size: 18px; font-weight: 700; text-decoration: none;
+  }
+  .help-btn {
+    display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 14px 20px;
+    border: 1px solid var(--color-brand-secondary-strong); background: var(--color-brand-secondary-strong); color: var(--color-on-strong);
+    font-size: 18px; font-weight: 700; text-decoration: none;
+  }
+</style>

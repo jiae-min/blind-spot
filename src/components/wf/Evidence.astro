@@ -1,0 +1,40 @@
+---
+// 근거 목록: 공식 출처 링크 + 확인일 (새 창 표시, 3.4 §4)
+// 다음 확인일이 지나면 '다시 확인 중' 표시 (D-032): 빌드 때 이미 지났으면 바로, 배포 뒤에 지나도 방문자 기기 날짜로 표시
+import { isStale, type ContentItem } from '../../data/content';
+interface Props { item: ContentItem }
+const { item } = Astro.props;
+const stale = isStale(item);
+---
+<div class="ev">
+  {item.nextCheck && (
+    <p class="stale" role="note" data-next-check={item.nextCheck} hidden={!stale}>
+      다시 확인 중이에요. 내용이 바뀌었을 수 있으니 이용 전에 기관에 꼭 확인해 주세요.
+    </p>
+  )}
+  <p class="ev-head">근거 · 확인일 {item.checkedAt ?? '확인 필요'}</p>
+  <ul>
+    {item.evidence.map((e) => (
+      <li>
+        <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}<span class="sr-only"> (새 창)</span> ↗</a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  const today = new Date().toISOString().slice(0, 10);
+  document.querySelectorAll<HTMLElement>('[data-next-check]').forEach((el) => {
+    if (el.dataset.nextCheck! < today) el.hidden = false;
+  });
+</script>
+
+<style>
+  .ev { font-size: 14px; color: rgba(51, 56, 35, .85); text-align: right; }
+  .ev-head { margin: 0 0 4px; font-weight: 700; }
+  .stale { margin: 0 0 var(--space-3); padding: 8px 12px; text-align: left; font-size: 15px; font-weight: 700; color: var(--color-text); background: #fff; border-left: 4px solid var(--color-accent-text); }
+  .stale[hidden] { display: none; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 14px; }
+  a { text-underline-offset: 3px; transition: color var(--t); }
+  a:hover { color: var(--color-accent-text); }
+</style>

@@ -1,0 +1,87 @@
+---
+// 단계 카드 (원자료 Guide·본문 원고)
+// 순서: 행동형 제목 → 이 행동으로 받을 수 있는 도움(부제목) → 비용(요약 | 상세) → 도움 목록 → 알아 둘 점 → 근거
+// 불안한 상황에서도 훑어 읽을 수 있게 줄글 대신 짧은 목록 (4.2 §2·§3)
+import Evidence from './Evidence.astro';
+import { COST_LABEL, presentGuide, type ContentItem } from '../../data/content';
+interface Props { item: ContentItem; step?: number }
+const { item, step } = Astro.props;
+const v = presentGuide(item);
+// 비용 항목별 줄: 쉬운 말(유료·무료…)을 앞에, 표준 비용 문구(2.1 §6)를 뒤에 작게
+const costs = item.editorial?.costs ?? null;
+---
+<article class="guide" data-id={item.id} data-order={item.order}>
+  <p class="meta-row">
+    {step && <span class="step" data-step-label>{step}단계</span>}
+    <span class="now" data-now hidden>지금 먼저</span>
+    {item.draft && <span class="draft-tag">검증 전 초안</span>}
+  </p>
+  <h3>{v.title}</h3>
+  <p class="subtitle">{v.subtitle}</p>
+  {costs ? (
+    <dl class="facts costs">
+      {costs.map((c) => (
+        <div>
+          <dt>{c.item}</dt>
+          <dd>
+            <strong class:list={['cv', { 'cv--paid': c.value === '유료', 'cv--free': c.value === '무료' }]}>{c.value}</strong>
+            <span class="std">{COST_LABEL[c.value]}</span>
+            {c.detail && <span class="detail">{c.detail}</span>}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  ) : (
+    <dl class="facts">
+      <div>
+        <dt>비용</dt>
+        <dd><strong>{item.costStatus}</strong>{v.costDetail && <span class="detail">{v.costDetail}</span>}</dd>
+      </div>
+    </dl>
+  )}
+  {v.list.length > 0 && (
+    <>
+      {v.listTitle && <p class="list-title">{v.listTitle}</p>}
+      <ul class="points">{v.list.map((p) => <li>{p}</li>)}</ul>
+    </>
+  )}
+  {v.notes.length > 0 && (
+    <div class="notes">
+      <p class="list-title">알아 둘 점</p>
+      <ul>{v.notes.map((n) => <li>{n}</li>)}</ul>
+    </div>
+  )}
+  <Evidence item={item} />
+</article>
+
+<style>
+  .guide { border: 1px solid var(--color-text); padding: var(--space-5); background: var(--color-canvas); }
+  .guide + :global(.guide) { margin-top: var(--space-4); }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 var(--space-2); }
+  .step, .now, .draft-tag { padding: 2px 8px; font-size: 12px; font-weight: 700; color: var(--color-on-strong); }
+  .step { background: var(--color-text); }
+  .now { background: var(--color-brand-secondary-strong); }
+  .now[hidden] { display: none; }
+  .draft-tag { background: var(--color-accent-text); }
+  h3 { font-size: 21px; margin: 0 0 6px; }
+  .subtitle { margin: 0 0 var(--space-4); font-size: 16px; font-weight: 600; color: var(--color-brand-secondary-strong); }
+  /* 비용: 앞은 표준 문구(요약), 뒤는 상세 */
+  .facts { margin: 0 0 var(--space-4); border: 1px solid var(--line); }
+  .facts div { display: grid; grid-template-columns: 72px 1fr; font-size: 15px; }
+  dt { font-weight: 700; padding: 10px 12px; background: rgba(123, 158, 137, .1); border-right: 1px solid var(--line); }
+  dd { margin: 0; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .detail { color: rgba(51, 56, 35, .85); }
+  /* 비용 항목별 줄 */
+  .costs div { grid-template-columns: minmax(120px, 34%) 1fr; }
+  .costs dt { font-weight: 600; }
+  .costs dd { align-items: baseline; }
+  .cv { font-weight: 800; }
+  .std { font-size: 13px; color: rgba(51, 56, 35, .7); }
+  .costs div + div { border-top: 1px solid var(--line); }
+  .list-title { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: rgba(51, 56, 35, .75); }
+  .points { list-style: none; margin: 0 0 var(--space-4); padding: 0; }
+  .points li { position: relative; padding: 7px 0 7px 20px; border-bottom: 1px dashed var(--line); }
+  .points li::before { content: ''; position: absolute; left: 4px; top: 16px; width: 6px; height: 6px; background: var(--color-text); }
+  .notes { margin: 0 0 var(--space-4); padding: 10px 12px; background: rgba(123, 158, 137, .1); }
+  .notes ul { margin: 0; padding-left: 18px; font-size: 15px; }
+</style>

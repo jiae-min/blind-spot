@@ -1,0 +1,75 @@
+---
+// CMP-CHECK-01 행동 체크리스트
+// persist=true(일반 케이스): 이 기기(localStorage)에만 저장, n/total, 초기화 제공, 손상 시 리셋 안내 (3.3 §7)
+// persist=false(폭력 관련): 저장하지 않음, 진행률도 표시하지 않음 (3.3 EVT-CHECK)
+interface Props { id: string; items: string[]; persist: boolean }
+const { id, items, persist } = Astro.props;
+---
+<div class="check" data-checklist={id} data-persist={persist ? '1' : '0'}>
+  {persist
+    ? <p class="note">체크한 항목은 <strong>이 기기에만</strong> 저장돼요. 다른 곳으로 보내지 않아요.</p>
+    : <p class="note">체크 상태는 <strong>저장하지 않아요.</strong> 페이지를 떠나면 지워져요.</p>}
+  {persist && <p class="count" aria-live="polite"><span data-done>0</span>/{items.length} 완료</p>}
+  <p class="corrupt" data-corrupt hidden>저장된 체크 기록을 읽을 수 없어 초기화했어요.</p>
+  <ul>
+    {items.map((t, i) => (
+      <li><label><input type="checkbox" value={i} autocomplete="off" /><span>{t}</span></label></li>
+    ))}
+  </ul>
+  {persist && <button type="button" class="reset btn-accent" data-reset>체크 초기화</button>}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-checklist]').forEach((root) => {
+    const persist = root.dataset.persist === '1';
+    const key = 'bs-check:' + root.dataset.checklist;
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+    const done = root.querySelector('[data-done]');
+    const count = () => { if (done) done.textContent = String(boxes.filter((b) => b.checked).length); };
+    const save = () => {
+      if (!persist) return;
+      try { localStorage.setItem(key, JSON.stringify(boxes.flatMap((b, i) => (b.checked ? [i] : [])))); } catch {}
+    };
+
+    if (persist) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const saved = JSON.parse(raw);
+          if (!Array.isArray(saved) || !saved.every((n) => Number.isInteger(n))) throw new Error('bad');
+          boxes.forEach((b, i) => (b.checked = saved.includes(i)));
+        }
+      } catch {
+        try { localStorage.removeItem(key); } catch {}
+        boxes.forEach((b) => (b.checked = false));
+        root.querySelector<HTMLElement>('[data-corrupt]')!.hidden = false;
+      }
+    } else {
+      boxes.forEach((b) => (b.checked = false));
+      window.addEventListener('pageshow', (e) => { if (e.persisted) boxes.forEach((b) => (b.checked = false)); });
+    }
+    count();
+
+    boxes.forEach((b) => b.addEventListener('change', () => { count(); save(); }));
+    root.querySelector('[data-reset]')?.addEventListener('click', () => {
+      boxes.forEach((b) => (b.checked = false));
+      try { localStorage.removeItem(key); } catch {}
+      count();
+    });
+  });
+</script>
+
+<style>
+  .note { margin: 0 0 var(--space-2); }
+  .count { font-weight: 700; margin: 0 0 var(--space-2); }
+  .corrupt { color: var(--color-accent-text); font-weight: 700; }
+  /* 한 줄에 2개씩, 하나의 박스 */
+  ul { list-style: none; padding: 0; margin: 0 0 var(--space-3); display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--color-text); border-left: 1px solid var(--color-text); }
+  @media (min-width: 600px) { ul { grid-template-columns: 1fr 1fr; } }
+  li { border-right: 1px solid var(--color-text); border-bottom: 1px solid var(--color-text); }
+  label { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; cursor: pointer; }
+  input { width: 22px; height: 22px; accent-color: var(--color-brand-secondary-strong); flex: none; }
+  input:checked + span { text-decoration: line-through; }
+  .check { display: flex; flex-direction: column; }
+  .reset { align-self: flex-end; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+</style>

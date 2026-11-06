@@ -1,0 +1,26 @@
+{
+  "name": "blind-spot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "check:content": "node scripts/check-content.mjs",
+    "prebuild": "node scripts/check-content.mjs",
+    "prebuild:preview": "node scripts/check-content.mjs",
+    "dev": "astro dev",
+    "dev:preview": "astro dev --mode preview",
+    "build": "astro build",
+    "build:preview": "astro build --mode preview",
+    "preview": "astro preview",
+    "export:content": "node scripts/export-content.mjs",
+    "deploy:preview": "npm run export:content && npm run build:preview && npx wrangler@4 pages deploy dist --project-name=blind-spot --branch=preview"
+  },
+  "dependencies": {
+    "@fontsource/kanit": "^5.3.0",
+    "astro": "^7.4.5"
+  },
+  "description": "상황을 고르면 당장 할 일부터 장기적인 자립까지 안내하는 지원 탐색 사이트",
+  "engines": {
+    "node": ">=22.23"
+  }
+}

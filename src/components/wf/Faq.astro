@@ -1,0 +1,61 @@
+---
+// FAQ 아코디언 — <details>: 키보드 조작·펼침 상태 노출이 기본 제공되고 JS 없이도 동작 (2.1 §5, 3.4 §6)
+// 질문은 비공식 표현 가능, 답은 검증된 것만 (1.4 §6). 원고가 없으면 자리 표시만.
+import Evidence from './Evidence.astro';
+import { expandTerms, present, type ContentItem } from '../../data/content';
+interface Props { items?: ContentItem[]; count?: number }
+const { items = [], count = 3 } = Astro.props;
+---
+<div class="faq">
+  {items.length > 0
+    ? items.map((it) => (
+        <details>
+          <summary class="btn-accent">
+            <span class="q">{it.draft && <span class="draft-tag">초안</span>}{expandTerms(it.question ?? it.title)}</span>
+          </summary>
+          <div class="a">
+            {(() => { const v = present(it); return (
+              <>
+                <p class="statement">{v.statement}</p>
+                {v.points.length > 0 && <ul class="points">{v.points.map((p) => <li>{p}</li>)}</ul>}
+              </>
+            ); })()}
+            <p class="cost">비용: <strong>{it.costStatus}</strong></p>
+            <Evidence item={it} />
+          </div>
+        </details>
+      ))
+    : Array.from({ length: count }, (_, i) => (
+        <details>
+          <summary class="btn-accent">[궁금할 수 있는 질문 {i + 1}]</summary>
+          <div class="a">
+            <p>[검증된 답변 자리]</p>
+            <p class="meta">근거 [출처] · 확인일 [YYYY-MM-DD]</p>
+          </div>
+        </details>
+      ))}
+</div>
+
+<style>
+  details { border-bottom: 1px solid var(--line); }
+  .faq { border-top: 1px solid var(--line); }
+  summary {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    min-height: 56px; padding: 8px 12px; font-weight: 700; cursor: pointer; list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 24px; line-height: 1; flex: none; }
+  details[open] summary::after { content: '−'; }
+  .a { padding: 0 12px var(--space-4); }
+  .a p { margin: 0 0 var(--space-2); white-space: pre-line; }
+  .statement { font-weight: 700; color: var(--color-brand-secondary-strong); }
+  .points { list-style: none; margin: 0 0 var(--space-3); padding: 0; }
+  .points li { position: relative; padding: 4px 0 4px 20px; }
+  .points li::before { content: ''; position: absolute; left: 4px; top: 13px; width: 6px; height: 6px; background: var(--color-text); }
+  .cost { font-size: 15px; }
+  .meta { font-size: 15px; color: rgba(51, 56, 35, .8); text-align: right; }
+  .draft-tag {
+    display: inline-block; margin-right: 8px; padding: 1px 6px; font-size: 12px; font-weight: 700; vertical-align: 2px;
+    background: var(--color-accent-text); color: var(--color-on-strong);
+  }
+</style>

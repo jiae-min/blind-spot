@@ -1,0 +1,44 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ComingSoon from '../../../components/templates/ComingSoon.astro';
+import { CASES, HORIZONS, href, type CaseDef } from '../../../data/cases';
+
+export function getStaticPaths() {
+  return CASES.map((c) => ({ params: { case: c.id }, props: { c } }));
+}
+const { c } = Astro.props as { c: CaseDef };
+---
+<Base title={c.label} sensitive={c.sensitive}>
+  {!c.ready ? <ComingSoon c={c} /> :
+  <div class="wrap scene">
+    <h1>{c.label}</h1>
+    <p>필요한 단계를 골라 주세요.</p>
+    <div class="bubbles">
+      {HORIZONS.map((h) => (
+        <a class="bubble btn-accent" href={href(`cases/${c.id}/${h.id}/`)}>
+          <strong>{h.title}</strong>
+          <span>({h.sub})</span>
+        </a>
+      ))}
+    </div>
+  </div>}
+</Base>
+
+<style>
+  .scene { padding-top: var(--space-6); }
+  .bubbles { display: grid; gap: var(--space-6); margin-top: var(--space-6); }
+  @media (min-width: 600px) { .bubbles { grid-template-columns: 1fr 1fr; max-width: 760px; } }
+  /* 말풍선: 둥근 사각형 + 아래 삼각 꼬리 (CMP-BTN-02) */
+  .bubble {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-height: 120px; padding: 20px; text-align: center; text-decoration: none;
+    background: var(--color-brand-secondary-strong); color: var(--color-on-strong); font-size: 20px;
+  }
+  .bubble::after {
+    content: ''; position: absolute; left: 50%; bottom: -18px; transform: translateX(-50%);
+    border: 18px solid transparent; border-bottom: 0; border-top-color: var(--color-brand-secondary-strong);
+  }
+  .bubble:hover::after, .bubble:focus-visible::after { border-top-color: var(--color-accent); }
+  .bubble::after { transition: border-color var(--t) var(--ease); }
+  .bubble span { font-size: 16px; }
+</style>

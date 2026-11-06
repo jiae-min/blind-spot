@@ -1,0 +1,4 @@
+Kanit — Copyright 2020 The Kanit Project Authors (https://github.com/cadsondemak/kanit)
+SIL Open Font License 1.1: https://openfontlicense.org
+
+사이트 로고 "blind spot"은 Kanit Regular 400의 글자 모양을 SVG 도형으로 바꿔 사용해요 (글꼴 파일 자체는 배포하지 않음).

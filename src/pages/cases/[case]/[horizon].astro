@@ -1,0 +1,17 @@
+---
+import Base from '../../../layouts/Base.astro';
+import GeneralDetail from '../../../components/templates/GeneralDetail.astro';
+import SafetyDetail from '../../../components/templates/SafetyDetail.astro';
+import ComingSoon from '../../../components/templates/ComingSoon.astro';
+import { CASES, HORIZONS, type CaseDef } from '../../../data/cases';
+
+export function getStaticPaths() {
+  return CASES.flatMap((c) => HORIZONS.map((h) => ({ params: { case: c.id, horizon: h.id }, props: { c, h } })));
+}
+const { c, h } = Astro.props as { c: CaseDef; h: (typeof HORIZONS)[number] };
+// 폭력 관련 단기 → SCR-S-001, 그 밖(일반 케이스, 폭력 관련 장기) → SCR-G-001
+const safety = c.sensitive && h.id === 'short-term';
+---
+<Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive}>
+  {!c.ready ? <ComingSoon c={c} h={h} /> : safety ? <SafetyDetail c={c} h={h} /> : <GeneralDetail c={c} h={h} />}
+</Base>

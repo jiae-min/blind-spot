@@ -1,0 +1,248 @@
+<defs>
+<pattern id="earth" width="12" height="12" patternUnits="userSpaceOnUse">
+<path d="M0 12 L12 0" stroke="currentColor" stroke-width="0.7"/>
+</pattern>
+<pattern id="ins" width="8" height="8" patternUnits="userSpaceOnUse">
+<path d="M0 8 L8 0 M0 0 L8 8" stroke="currentColor" stroke-width="0.5"/>
+</pattern>
+<pattern id="gravel" width="10" height="8" patternUnits="userSpaceOnUse">
+<circle cx="3" cy="3" r="1" stroke="currentColor" stroke-width="0.6"/>
+<circle cx="8" cy="6" r="1.4" stroke="currentColor" stroke-width="0.6"/>
+</pattern>
+<g id="cut">
+<path d="M96 268 V250 L420 24 L1124 250 V268 L420 42 Z"/>
+<path d="M168 218 H620 V236 H168 Z"/>
+<path d="M690 218 H932.5 L988.75 236 H690 Z"/>
+<rect x="150" y="434" width="262" height="18"/>
+<rect x="600" y="434" width="482" height="18"/>
+<rect x="1064" y="452" width="286" height="18"/>
+<rect x="150" y="650" width="370" height="18"/>
+<rect x="688" y="650" width="662" height="18"/>
+<rect x="150" y="866" width="1200" height="18"/>
+<rect x="150" y="226" width="18" height="44"/>
+<rect x="150" y="380" width="18" height="112"/>
+<rect x="150" y="592" width="18" height="120"/>
+<rect x="150" y="812" width="18" height="122"/>
+<rect x="1332" y="380" width="18" height="112"/>
+<rect x="1332" y="592" width="18" height="120"/>
+<rect x="1332" y="812" width="18" height="122"/>
+<rect x="118" y="934" width="82" height="20"/>
+<rect x="1300" y="934" width="82" height="20"/>
+<path d="M1046 884 H1100 L1112 910 H1034 Z"/>
+<rect x="1064" y="240" width="18" height="40"/>
+<rect x="1064" y="428" width="18" height="272"/>
+<rect x="400" y="236" width="12" height="248"/>
+<rect x="400" y="650" width="12" height="50"/>
+<rect x="712" y="236" width="12" height="32"/>
+<rect x="712" y="434" width="12" height="50"/>
+<rect x="712" y="650" width="12" height="50"/>
+</g>
+</defs>
+<!-- LAYERS: insulation, sub-base, finishes -->
+<g id="layer-finish" class="w-layer">
+<path d="M150 230.5 L420 42 L1064 248.1 V260.1 L420 54 L150 242.5 Z" fill="url(#ins)"/>
+<path d="M92 246 L420 20 L1128 246"/>
+<rect x="82" y="250" width="14" height="12"/>
+<rect x="1124" y="250" width="14" height="12"/>
+<rect x="138" y="228" width="12" height="42" fill="url(#ins)"/>
+<rect x="138" y="380" width="12" height="112" fill="url(#ins)"/>
+<rect x="138" y="592" width="12" height="120" fill="url(#ins)"/>
+<rect x="138" y="812" width="12" height="122" fill="url(#ins)"/>
+<rect x="1350" y="380" width="12" height="112" fill="url(#ins)"/>
+<rect x="1350" y="592" width="12" height="120" fill="url(#ins)"/>
+<rect x="1350" y="812" width="12" height="122" fill="url(#ins)"/>
+<rect x="1082" y="244" width="10" height="36" fill="url(#ins)"/>
+<path d="M135 226 V270 M135 380 V492 M135 592 V712 M135 812 V890"/>
+<path d="M1365 380 V492 M1365 592 V712 M1365 812 V890 M1094 242 V280"/>
+<rect x="1328" y="374" width="38" height="6"/>
+<rect x="1082" y="434" width="250" height="18" fill="url(#ins)"/>
+<rect x="168" y="884" width="1164" height="14" fill="url(#gravel)"/>
+<path d="M168 860 H1332"/>
+<path d="M168 644 H520 M724 644 H1332"/>
+<path d="M150 428 H412 M600 428 H1332"/>
+<path d="M168 212 H620 M690 212 H913.75"/>
+</g>
+
+<!-- GROUND -->
+<g id="layer-ground">
+<rect x="30" y="890" width="104" height="14" fill="url(#earth)" stroke="none"/>
+<rect x="1366" y="890" width="104" height="14" fill="url(#earth)" stroke="none"/>
+<path class="w-ground" d="M30 890 H135 M1365 890 H1470"/>
+</g>
+
+<!-- SECTION CUT: merged outline, then fill -->
+<g id="layer-cut">
+<use href="#cut" xlink:href="#cut" class="u-stroke" fill="currentColor"/>
+<use href="#cut" xlink:href="#cut" class="cf" stroke="none"/>
+</g>
+
+<path class="stair-cut" d="M500 866 V842 H515.67 V824 H531.33 V806 H547 V788 H562.67 V770 H578.33 V752 H594 V734 H609.67 V716 H625.33 V698 H641 V680 H656.67 V662 H672.33 V644 H712 V668 H688 V676 L532 866 Z"/>
+<!-- CEILINGS, OPENINGS, BEYOND -->
+<g id="layer-beyond" class="w-beyond">
+<path d="M168 684 H400 M724 684 H1064 M1082 684 H1332"/>
+<path d="M168 468 H400 M724 468 H1064 M1082 486 H1332"/>
+<path d="M168 252 H400 M724 252 H1038.75 L1064 260"/>
+<path d="M155 270 V380 M161 270 V380 M130 384 L150 380"/>
+<path d="M155 492 V592 M161 492 V592 M130 596 L150 592"/>
+<path d="M155 712 V812 M161 712 V812 M130 816 L150 812"/>
+<path d="M1339 492 V592 M1345 492 V592 M1350 592 L1370 596"/>
+<path d="M1339 712 V812 M1345 712 V812 M1350 812 L1370 816"/>
+<path d="M1071 280 V428 M1077 280 V428 M1064 354 H1082"/>
+<circle cx="420" cy="130" r="26"/>
+<path d="M420 104 V156 M394 130 H446"/>
+<rect x="424" y="700" width="64" height="160"/>
+<path d="M430 706 H482 V860 M430 706 V860 M476 780 V792"/>
+<path d="M700 644 V626 H677 V608 H654 V590 H631 V572 H608 V554 H585 V536 H562 V518 H539 V500 H516 V482 H493 V464 H470 V446 H447 V428 H412"/>
+<path d="M676 644 L426 448"/>
+<path d="M506 842 V790 L688 581 V644"/>
+<path d="M694 626 V580 L430 373.4 V428"/>
+<path d="M412 348 H600 V428 M412 354 H600 M450 354 V428 M488 354 V428 M526 354 V428 M564 354 V428"/>
+<path d="M628 236 L668 428 M650 236 L690 428"/>
+<path d="M632.1 252 H654.1 M637 276 H659 M641.9 300 H663.9 M646.8 324 H668.8 M651.7 348 H673.7 M656.6 372 H678.6 M661.5 396 H683.5 M666.4 420 H688.4"/>
+<path d="M690 236 L702 304"/>
+<path d="M1092 330 H1332 M1092 336 H1332"/>
+<path d="M1112 336 V428 M1216 336 V428 M1244 336 V428 M1272 336 V428 M1300 336 V428"/>
+</g>
+
+<!-- FURNITURE, grouped by room -->
+<g id="layer-furniture" class="w-furn">
+<g class="room-furn" data-room="attic">
+<rect x="280" y="172" width="60" height="40" class="o"/>
+<path d="M280 180 H340 M310 172 V186 M286 196 H304 V204 H286 Z"/>
+<rect x="290" y="150" width="36" height="22" class="o"/>
+<path d="M308 150 V160 M290 156 H326"/>
+<rect x="350" y="192" width="40" height="20" class="o"/>
+<path d="M350 198 H390"/>
+<rect x="720" y="182" width="70" height="30" class="o"/>
+<path d="M720 189 H790 M755 182 V194 M728 200 H748 V206 H728 Z"/>
+<rect x="800" y="194" width="48" height="18" rx="3" class="o"/>
+<path d="M816 194 V189 H832 V194 M812 194 V212 M836 194 V212"/>
+</g>
+<g class="room-furn" data-room="study">
+<rect x="178" y="276" width="70" height="152"/>
+<path d="M178 314 H248 M178 352 H248 M178 390 H248 M178 422 H248"/>
+<path d="M183 314 V290 H189 V314 M190 314 V286 H197 V314 M198 314 V294 H203 V314 M204 314 V288 H211 V314 M214 314 L222 292 L227 294 L219 314 M230 314 V302 H244 V314"/>
+<path d="M183 352 V330 H190 V352 M191 352 V326 H199 V352 M200 352 V332 H206 V352 M207 352 V328 H213 V352 M222 352 V344 H244 V352 M224 344 V338 H242 V344"/>
+<path d="M183 390 V366 H190 V390 M191 390 V370 H198 V390 M199 390 V364 H206 V390 M226 390 Q226 376 235 374 Q244 376 244 390"/>
+<path d="M213 390 V422 M207 404 V410 M219 404 V410"/>
+<rect x="290" y="364" width="102" height="6"/>
+<path d="M296 370 V428"/>
+<rect x="352" y="370" width="36" height="58"/>
+<path d="M352 389 H388 M352 408 H388 M364 380 H376 M364 399 H376 M364 418 H376"/>
+<rect x="308" y="324" width="44" height="28" rx="2"/>
+<rect x="311" y="327" width="38" height="22"/>
+<path d="M330 352 V362 M318 364 V362 H342 V364"/>
+<path d="M370 364 H384 M377 362 L371 340 L384 330 M380 326 L396 333 L391 340 Z"/>
+<rect x="262" y="330" width="9" height="52" rx="4" class="o"/>
+<path d="M266 382 V388"/>
+<rect x="264" y="386" width="38" height="8" rx="3" class="o"/>
+<path d="M272 372 H292 V386 M284 394 V414 M268 418 H300"/>
+<circle cx="270" cy="422" r="3"/>
+<circle cx="298" cy="422" r="3"/>
+</g>
+<g class="room-furn" data-room="bed3">
+<rect x="738" y="366" width="8" height="62" rx="2"/>
+<rect x="746" y="404" width="144" height="12"/>
+<path d="M752 416 V428 M884 416 V428"/>
+<rect x="746" y="392" width="142" height="12" rx="4"/>
+<rect x="750" y="380" width="36" height="14" rx="6" class="o"/>
+<rect x="792" y="388" width="98" height="24" rx="3" class="o"/>
+<path d="M792 396 H890"/>
+<rect x="888" y="384" width="8" height="44" rx="2" class="o"/>
+<rect x="906" y="398" width="40" height="30"/>
+<path d="M906 410 H946 M922 404 H930 M926 398 V384 M918 384 H934 L930 370 H922 Z M920 398 H932"/>
+<rect x="790" y="296" width="64" height="44"/>
+<rect x="798" y="304" width="48" height="28"/>
+</g>
+<g class="room-furn" data-room="terrace">
+<path d="M1140 428 L1136 404 H1184 L1180 428 Z" class="o"/>
+<path d="M1133 398 H1187 V404 H1133 Z M1160 398 V360 M1160 384 L1142 368 M1160 374 L1178 356 M1160 390 L1176 380"/>
+<path d="M1142 368 Q1128 360 1126 348 Q1140 350 1142 368 Z"/>
+<path d="M1178 356 Q1188 344 1200 344 Q1196 358 1178 356 Z"/>
+<path d="M1160 360 Q1150 346 1160 332 Q1170 346 1160 360 Z"/>
+<path d="M1176 380 Q1188 374 1196 380 Q1188 388 1176 380 Z"/>
+</g>
+<g class="room-furn" data-room="bed2">
+<rect x="178" y="578" width="8" height="66" rx="2"/>
+<rect x="186" y="620" width="144" height="12"/>
+<path d="M192 632 V644 M324 632 V644"/>
+<rect x="186" y="608" width="142" height="12" rx="4"/>
+<rect x="190" y="596" width="36" height="14" rx="6" class="o"/>
+<rect x="232" y="604" width="98" height="24" rx="3" class="o"/>
+<path d="M232 612 H330"/>
+<rect x="344" y="612" width="40" height="32"/>
+<path d="M344 626 H384 M360 619 H368 M364 612 V592 M352 592 H376 L370 574 H358 Z M358 612 H370"/>
+<rect x="226" y="516" width="64" height="44"/>
+<rect x="234" y="524" width="48" height="28"/>
+</g>
+<g class="room-furn" data-room="bath">
+<rect x="734" y="600" width="170" height="8" rx="3"/>
+<path d="M738 608 V632 Q738 644 750 644 H890 Q900 644 900 632 V608"/>
+<path d="M890 600 V512 H870 M864 508 H876 L873 516 H867 Z M880 588 H896 M888 588 V600"/>
+<path d="M744 600 V594 M760 600 V592"/>
+<rect x="946" y="598" width="84" height="6"/>
+<rect x="950" y="604" width="76" height="40"/>
+<path d="M988 604 V644 M982 620 V628 M994 620 V628"/>
+<path d="M962 598 Q962 586 988 586 Q1014 586 1014 598 M988 586 V576 H980"/>
+<rect x="962" y="508" width="52" height="58" rx="4"/>
+<rect x="967" y="513" width="42" height="48" rx="2"/>
+<path d="M1034 560 H1058 M1040 560 V600 M1052 560 V594"/>
+</g>
+<g class="room-furn" data-room="master">
+<rect x="1094" y="568" width="10" height="76" rx="3"/>
+<rect x="1104" y="620" width="138" height="12"/>
+<path d="M1110 632 V644 M1236 632 V644"/>
+<rect x="1104" y="608" width="136" height="12" rx="4"/>
+<rect x="1110" y="590" width="38" height="14" rx="6" class="o"/>
+<rect x="1108" y="598" width="40" height="14" rx="6" class="o"/>
+<rect x="1154" y="604" width="88" height="24" rx="3" class="o"/>
+<path d="M1154 612 H1242"/>
+<rect x="1258" y="506" width="68" height="138"/>
+<path d="M1258 514 H1326 M1258 636 H1326 M1292 514 V636 M1287 570 V584 M1297 570 V584"/>
+</g>
+<g class="room-furn" data-room="living">
+<rect x="196" y="796" width="160" height="38" rx="8" class="o"/>
+<rect x="204" y="826" width="74" height="16" rx="4" class="o"/>
+<rect x="278" y="826" width="74" height="16" rx="4" class="o"/>
+<rect x="194" y="842" width="164" height="10" rx="2" class="o"/>
+<rect x="184" y="814" width="20" height="38" rx="6" class="o"/>
+<rect x="348" y="814" width="20" height="38" rx="6" class="o"/>
+<path d="M200 852 V860 M352 852 V860"/>
+<rect x="216" y="808" width="26" height="20" rx="6" class="o"/>
+<path d="M386 860 V766 M378 860 H394 M374 766 H398 L393 744 H379 Z"/>
+<rect x="232" y="724" width="88" height="54"/>
+<rect x="240" y="732" width="72" height="38"/>
+</g>
+<g class="room-furn" data-room="kitchen">
+<rect x="736" y="692" width="144" height="48"/>
+<path d="M784 692 V740 M832 692 V740 M778 726 V734 M790 726 V734 M838 726 V734"/>
+<rect x="732" y="804" width="152" height="6"/>
+<rect x="736" y="810" width="144" height="44"/>
+<path d="M736 860 V854 M880 860 V854 M742 860 H874 M784 810 V854 M832 810 V854 M778 818 V826 M790 818 V826 M838 818 V826"/>
+<path d="M756 804 V790 H770 V794"/>
+<path d="M830 804 V792 H860 V804 M826 792 H864 M840 792 V788 H850 V792"/>
+<rect x="918" y="810" width="114" height="6"/>
+<path d="M926 816 L928 860 M1024 816 L1022 860"/>
+<path d="M900 778 V860 M896 778 H904 M900 794 H904 M900 810 H904 M926 834 V860"/>
+<rect x="900" y="828" width="28" height="6" class="o"/>
+<path d="M1050 778 V860 M1046 778 H1054 M1046 794 H1050 M1046 810 H1050 M1024 834 V860"/>
+<rect x="1022" y="828" width="28" height="6" class="o"/>
+<path d="M975 684 V748 M958 762 Q975 738 992 762 Z M971 762 Q975 768 979 762"/>
+<path d="M970 810 Q964 800 970 792 H980 Q986 800 980 810 M975 792 V780 M975 786 L968 778 M975 784 L982 776"/>
+</g>
+<g class="room-furn" data-room="utility">
+<path d="M1100 760 H1196 M1108 760 L1116 768 M1188 760 L1180 768"/>
+<rect x="1110" y="740" width="22" height="20"/>
+<path d="M1146 760 V746 Q1146 742 1150 740 V734 H1156 V740 Q1160 742 1160 746 V760 M1170 760 V744 H1182 V760"/>
+<rect x="1104" y="786" width="76" height="74" rx="3"/>
+<path d="M1104 800 H1180 M1112 793 H1132"/>
+<circle cx="1168" cy="793" r="3"/>
+<circle cx="1142" cy="830" r="21"/>
+<circle cx="1142" cy="830" r="15"/>
+<rect x="1250" y="702" width="56" height="74" rx="3"/>
+<rect x="1262" y="716" width="32" height="12"/>
+<circle cx="1270" cy="746" r="3"/>
+<circle cx="1286" cy="746" r="3"/>
+<path d="M1262 776 V860 M1278 776 V860 M1294 776 V860 M1258 808 H1266 M1274 820 H1282 M1290 808 H1298"/>
+</g>
+</g>

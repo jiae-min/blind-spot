@@ -1,0 +1,19 @@
+---
+// 늘 보이는 긴급 연락처 112·119·1366 (접지 않음)
+import CallCard from './CallCard.astro';
+import { TOP } from '../../data/emergency';
+interface Props { prefix?: string }
+const { prefix = 'top' } = Astro.props;
+---
+<div class="top-calls">
+  {TOP.map((s, i) => <CallCard s={s} uid={`${prefix}-${i}`} />)}
+</div>
+<script>
+  import { bindCallActions } from '../../scripts/call-actions';
+  bindCallActions();
+</script>
+
+<style>
+  .top-calls { display: grid; gap: var(--space-3); }
+  @media (min-width: 900px) { .top-calls { grid-template-columns: repeat(3, 1fr); } }
+</style>

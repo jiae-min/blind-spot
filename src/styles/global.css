@@ -1,0 +1,103 @@
+/* 디자인 토큰 — 2.1 UI/UX 디자인 시스템 */
+
+:root {
+  --color-canvas: #fbfaf8;
+  --color-brand-secondary: #7b9e89;      /* 비텍스트 장식 전용 (canvas 대비 2.84) */
+  --color-brand-secondary-strong: #59765f; /* 흰 글자가 놓이는 배경 (4.81) */
+  --color-accent: #f35b04;               /* 호버·선택 강조 */
+  --color-accent-text: #b84502;          /* 본문 주황 텍스트 후보 (5.17) */
+  --color-text: #333823;
+  --color-on-strong: #fbfaf8;
+  --color-emergency: #333823;
+
+  /* 기기 기본 글꼴 (D-031): iPhone·Mac = Apple SD Gothic Neo, Windows = 맑은 고딕, Android = Noto Sans(본고딕). 내려받는 글꼴 없음 */
+  --font: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif;
+  /* 로고는 Kanit 400 모양의 SVG(src/data/logo.ts, D-031) — 글꼴 파일을 받지 않음 */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --radius: 0px;                         /* 각진 모서리 (heronaiapp.com 스타일) */
+  --line: rgba(51, 56, 35, .22);         /* 가는 구분선 */
+  --font-mono: var(--font);               /* 작은 대문자 라벨도 같은 글꼴 (시스템 고정폭 글꼴 쓰지 않음) */
+  --ease: cubic-bezier(.65, 0, .35, 1);
+  --t: .4s;                              /* 호버 전환 시간 */
+  --content-max: 1200px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+h1, h2, h3, h4 { font-weight: 800; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 var(--space-4); }
+h1 { font-size: clamp(32px, 6vw, 48px); }
+h2 { font-size: 32px; }
+h3 { font-size: 24px; }
+h4 { font-size: 18px; }
+h5 { font-size: 16px; font-weight: 400; }
+h6 { font-size: 13px; font-weight: 400; }
+a { color: inherit; }
+/* 버튼·입력·코드도 본문 글꼴을 쓰도록 (브라우저 기본 글꼴 방지) */
+button, input, select, textarea, summary, code, kbd { font-family: inherit; font-size: inherit; }
+:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 var(--space-4); }
+@media (min-width: 768px) { .wrap { padding: 0 var(--space-6); } }
+
+.test-badge {
+  display: inline-block; font-size: 14px; font-weight: 700; letter-spacing: .02em;
+  border: 1px dashed var(--color-text); padding: 2px 8px; font-family: var(--font-mono); text-transform: uppercase;
+}
+
+/* 2.3 뷰포트 매트릭스: 1025px 이상 또는 768–1024 가로 → 집형, 나머지 → 모바일형 */
+/* 작은 고정폭 대문자 라벨 (heronaiapp.com 스타일) */
+.mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+
+/* 버튼 공통 호버: 강조색으로 채움 (모든 페이지) */
+.btn-accent { transition: background-color var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease); }
+.btn-accent:hover, .btn-accent:focus-visible { background-color: var(--color-accent) !important; border-color: var(--color-accent) !important; color: var(--color-on-strong) !important; }
+
+.only-house { display: none; }
+@media (min-width: 1025px), (min-width: 768px) and (orientation: landscape) {
+  .only-house { display: block; }
+  .only-mobile { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
+}
+
+/* 선이 만나는 모서리마다 작은 사각형 (abatable.com 방식). 상세 페이지의 박스·칸에 .tick을 붙임.
+   ::before = 위쪽 두 모서리, ::after = 아래쪽 두 모서리. 사각형 중심이 1px 선 위에 오도록 -2px */
+.tick { position: relative; }
+.tick::before, .tick::after {
+  content: ''; position: absolute; left: -2px; right: -2px; height: 5px; z-index: 50; pointer-events: none; /* 헤더(100) 다음 순위 */
+  background:
+    linear-gradient(var(--color-text), var(--color-text)) left center / 5px 5px no-repeat,
+    linear-gradient(var(--color-text), var(--color-text)) right center / 5px 5px no-repeat;
+}
+.tick::before { top: -2px; }
+.tick::after { bottom: -2px; }
+
+/* 상세 페이지 구역(오프닝·조건·제도·단계·체크리스트·FAQ 등): 가는 선 상자를 위아래로 이어 붙이고 모서리에 사각형 */
+.sec { border: 1px solid var(--line); padding: var(--space-6) var(--space-4); }
+.sec + .sec { margin-top: -1px; }
+/* 상세 페이지 오프닝 제목: 시각 크기는 h3(24px), 문서 구조는 h1 */
+.sec.opening h1 { font-size: 24px; line-height: 1.35; }
+/* 구역 제목(조건·제도·단계·체크리스트·FAQ 등)도 같은 h3 크기로 통일 */
+.sec h2 { font-size: 24px; line-height: 1.35; }
+/* 구역 설명 문장(오프닝 설명·구역 부연설명): 모든 페이지에서 같은 크기·행간 (D-026) */
+.desc { font-size: 18px; line-height: 1.6; }
+@media (min-width: 768px) { .sec { padding: var(--space-7) var(--space-6); } }
+.sec > :last-child { margin-bottom: 0 !important; }
+.sec-after { margin-top: var(--space-6); }

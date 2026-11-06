@@ -1,0 +1,111 @@
+---
+// CMP-SCRIPT-01 전화·문의 문장 (EVT-SCRIPT-COPY)
+// 기관마다 할 수 있는 말이 다르므로 기관 → 짧게/자세히 순으로 고름. 지금 보이는 문장만 복사.
+// 괄호 토큰은 주황(accentText)+밑줄 — 색만으로 구분하지 않음.
+// 문장 틀은 4.2 §6 템플릿: 인사 → (발생한 시점) → (현재 상황) → (이미 취한 조치) → (필요한 지원) → (방문 가능 여부·비용·필요한 서류)
+// 짧게 말하기는 긴급 전화용으로 (현재 위치)와 필요한 연락을 먼저. 필요 없는 괄호는 빼고 말해도 됨.
+// 기관별 역할에 맞춘 문장은 검증된 기관 원고가 들어오면 기관마다 따로 둠 (지금은 같은 틀).
+interface Props { agencies?: string[] }
+const { agencies = ['[기관]'] } = Astro.props;
+type Part = string | { tok: string };
+const MODES = [
+  { id: 'short', label: '짧게 말하기' },
+  { id: 'detailed', label: '자세히 말하기' },
+] as const;
+const t = (tok: string) => ({ tok });
+const sample = (_agency: string, mode: 'short' | 'detailed'): Part[] =>
+  mode === 'short'
+    ? ['안녕하세요. 지금 ', t('(현재 위치)'), '에 있어요. ', t('(현재 상황)'), ' 때문에 연락드렸어요. ', t('(필요한 지원)'), ' 받을 수 있을까요?']
+    : [
+        '안녕하세요. ', t('(발생한 시점)'), '에 ', t('(현재 상황)'), ' 일이 생겨서 연락드렸어요. ',
+        '지금까지 ', t('(이미 취한 조치)'), '까지 했어요. ',
+        t('(필요한 지원)'), ' 받을 수 있을까요? ',
+        t('(방문 가능 여부·비용·필요한 서류)'), '도 알려 주세요.',
+      ];
+---
+<div class="script" data-script>
+  {/* 두 묶음(전화할 곳 / 문장 길이)을 각각 한 블록으로, PC에선 한 줄. 좁으면 줄바꿈 */}
+  <div class="controls">
+    {agencies.length > 1 && (
+      <div class="group">
+        <span class="group-label" id="script-agency">어디에 전화하나요?</span>
+        <div class="seg" role="group" aria-labelledby="script-agency">
+          {agencies.map((a, i) => (
+            <button type="button" class="pill btn-accent" aria-pressed={String(i === 0)} data-agency={i}>{a}</button>
+          ))}
+        </div>
+      </div>
+    )}
+    <div class="group">
+      <span class="group-label" id="script-mode">문장 길이</span>
+      <div class="seg" role="group" aria-labelledby="script-mode">
+        {MODES.map((m, i) => (
+          <button type="button" class="pill btn-accent" aria-pressed={String(i === 0)} data-mode={m.id}>{m.label}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+  {agencies.map((a, ai) => MODES.map((m, mi) => (
+    <p class="text" data-text={`${ai}:${m.id}`} hidden={!(ai === 0 && mi === 0)}>
+      {sample(a, m.id).map((p) => (typeof p === 'string' ? p : <span class="tok">{p.tok}</span>))}
+    </p>
+  )))}
+  <div class="copy-row">
+    <span class="done" data-done aria-live="polite"></span>
+    <button type="button" class="copy btn-accent" data-copy>문장 복사</button>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-script]').forEach((root) => {
+    const agencyBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-agency]')];
+    const modeBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+    const texts = [...root.querySelectorAll<HTMLElement>('[data-text]')];
+    const done = root.querySelector<HTMLElement>('[data-done]')!;
+    let agency = '0';
+    let mode = 'short';
+    const render = () => {
+      texts.forEach((t) => (t.hidden = t.dataset.text !== `${agency}:${mode}`));
+      done.textContent = '';
+    };
+    const bind = (btns: HTMLButtonElement[], set: (b: HTMLButtonElement) => void) =>
+      btns.forEach((b) => b.addEventListener('click', () => {
+        btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        set(b);
+        render();
+      }));
+    bind(agencyBtns, (b) => (agency = b.dataset.agency!));
+    bind(modeBtns, (b) => (mode = b.dataset.mode!));
+    root.querySelector('[data-copy]')!.addEventListener('click', async () => {
+      const visible = texts.find((t) => !t.hidden)!;
+      try {
+        await navigator.clipboard.writeText(visible.textContent!.trim());
+        done.textContent = '복사했어요.';
+      } catch {
+        done.textContent = '복사하지 못했어요. 문장을 길게 눌러 직접 복사해 주세요.';
+      }
+    });
+  });
+</script>
+
+<style>
+  .controls { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-5); margin-bottom: var(--space-4); }
+  .group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .group-label { font-weight: 700; font-size: 15px; }
+  /* 한 블록: 바깥 테두리 하나 + 칸 사이 가는 선 */
+  .seg { display: flex; flex-wrap: wrap; border: 1px solid var(--color-text); }
+  .pill {
+    flex: 1 1 auto; min-height: 44px; padding: 0 18px; border: 0; background: none;
+    font: inherit; font-weight: 700; color: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .pill + .pill { border-left: 1px solid var(--color-text) !important; }
+  .pill[aria-pressed='true'] { background: var(--color-text); color: var(--color-on-strong); }
+  .text { font-size: 18px; line-height: 1.7; background: #fff; border: 1px solid var(--line); padding: var(--space-4); margin: 0 0 var(--space-3); }
+  .tok { color: var(--color-accent-text); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .copy {
+    min-height: 44px; padding: 0 20px; border: 1px solid var(--color-brand-secondary-strong); background: var(--color-brand-secondary-strong);
+    color: var(--color-on-strong); font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .copy-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
+  .done { font-weight: 700; }
+</style>

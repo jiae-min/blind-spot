@@ -1,0 +1,36 @@
+---
+// 와이어프레임 자리 표시 (1.4 §1: `[승인된 데이터 카드]` 등은 빈 컴포넌트 자리이지 공개 문구가 아님)
+interface Props {
+  label: string;      // 자리 이름 — 화면에 [label]로 보임
+  cmp?: string;       // 연결될 컴포넌트/화면 ID
+  note?: string;      // 개발용 설명
+  tone?: 'default' | 'critical' | 'warning';
+  as?: 'section' | 'div';
+}
+import { SHOW_DRAFTS } from '../../data/content';
+const { label, cmp, note, tone = 'default', as: Tag = 'section' } = Astro.props;
+// 컴포넌트 ID·개발 메모는 로컬 개발과 미리보기에서만 (공개 빌드에서는 테스트 목업 문구 제거, 3.1 §7·4.4 §7)
+const showDev = import.meta.env.DEV || SHOW_DRAFTS;
+---
+<Tag class:list={['slot', `slot--${tone}`]}>
+  <p class="slot-head">
+    <span class="slot-label">[{label}]</span>
+    {showDev && cmp && <code class="slot-id">{cmp}</code>}
+  </p>
+  {showDev && note && <p class="slot-note">{note}</p>}
+  <slot />
+</Tag>
+
+<style>
+  .slot {
+    /* 옅은 녹색 자리 상자: 선 없이 배경색만 (구역 구분선과 겹치지 않게) */
+    border: 0;
+    padding: var(--space-4); margin: 0 0 var(--space-5); background: rgba(123, 158, 137, .1);
+  }
+  .slot--critical { border: 1px solid var(--color-emergency); background: #fff; }
+  .slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0 0 var(--space-2); }
+  .slot-label { font-weight: 800; font-size: 18px; }
+  .slot-id { font-size: 14px; padding: 1px 6px; background: rgba(51, 56, 35, .08); font-family: var(--font-mono); }
+  .slot-note { margin: 0 0 var(--space-3); font-size: 15px; color: rgba(51, 56, 35, .8); }
+  .slot :global(> :last-child) { margin-bottom: 0; }
+</style>

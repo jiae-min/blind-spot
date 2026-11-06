@@ -1,0 +1,66 @@
+---
+// 메일 문의 양식 — 웹 폼·서버 없이 메일 주소 + 복사할 수 있는 양식 + 메일 앱 열기(mailto) (D-023)
+// 사이트는 아무것도 보내거나 저장하지 않음. 메일 앱이 없는 기기를 위해 주소 복사·양식 복사를 함께 둠.
+import { CONTACT_EMAIL } from '../../data/info';
+
+const SUBJECT = '[blind spot] 정보 누락·정정 제보';
+const BODY = [
+  '1. 종류: 정보 누락 / 정보 정정 / 기타 문의 (하나만 남겨 주세요)',
+  '2. 페이지: (페이지 주소나 이름)',
+  '3. 내용: (빠졌거나 다른 내용, 바르게 고칠 내용)',
+  '4. 공식 출처: (확인한 기관 링크가 있다면)',
+].join('\n');
+const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(BODY + '\n')}`;
+---
+<div class="mail" data-mail>
+  <dl class="addr">
+    <dt>받는 사람</dt>
+    <dd><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></dd>
+    <dt>제목</dt>
+    <dd>{SUBJECT}</dd>
+  </dl>
+  <p class="form-head">메일 양식</p>
+  <pre class="form" data-form>{BODY}</pre>
+  <div class="row">
+    <span class="done" data-done aria-live="polite"></span>
+    <button type="button" class="btn btn-accent" data-copy-addr>주소 복사</button>
+    <button type="button" class="btn btn-accent" data-copy-form>양식 복사</button>
+    <a class="btn btn-accent strong" href={mailto}>메일 앱에서 쓰기 <span class="arrow" aria-hidden="true">→</span></a>
+  </div>
+  <p class="hint">'메일 앱에서 쓰기'를 누르면 받는 사람·제목·양식이 채워진 채로 메일 앱이 열려요. 열리지 않으면 주소와 양식을 복사해 쓰시는 메일에 붙여 넣어 주세요.</p>
+</div>
+
+<script define:vars={{ email: CONTACT_EMAIL }}>
+  document.querySelectorAll('[data-mail]').forEach(function (root) {
+    var done = root.querySelector('[data-done]');
+    async function copy(text) {
+      try { await navigator.clipboard.writeText(text); done.textContent = '복사했어요.'; }
+      catch (e) { done.textContent = '복사하지 못했어요. 길게 눌러 직접 복사해 주세요.'; }
+    }
+    root.querySelector('[data-copy-addr]').addEventListener('click', function () { copy(email); });
+    root.querySelector('[data-copy-form]').addEventListener('click', function () { copy(root.querySelector('[data-form]').textContent.trim()); });
+  });
+</script>
+
+<style>
+  .addr { display: grid; grid-template-columns: auto 1fr; margin: 0 0 var(--space-4); border: 1px solid var(--line); background: #fff; }
+  .addr dt, .addr dd { margin: 0; padding: 12px 16px; border-top: 1px solid var(--line); }
+  .addr dt:first-of-type, .addr dd:first-of-type { border-top: 0; }
+  .addr dt { font-weight: 700; border-right: 1px solid var(--line); white-space: nowrap; }
+  .addr dd { min-width: 0; overflow-wrap: anywhere; }
+  .addr a { font-weight: 700; font-size: 18px; }
+  .form-head { font-weight: 700; margin: 0 0 6px; }
+  .form {
+    margin: 0 0 var(--space-3); padding: var(--space-4); background: #fff; border: 1px solid var(--line);
+    font-family: inherit; font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 12px; }
+  .done { font-weight: 700; margin-right: auto; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--color-text);
+    background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+  }
+  .btn.strong { border-color: var(--color-brand-secondary-strong); background: var(--color-brand-secondary-strong); color: var(--color-on-strong); }
+  .arrow { font-family: var(--font-mono); }
+  .hint { font-size: 14px; margin: var(--space-3) 0 0 !important; color: rgba(51, 56, 35, .8); }
+</style>

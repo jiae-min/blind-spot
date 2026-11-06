@@ -1,0 +1,44 @@
+---
+// 지역 선택: 서울·경기를 고르면 바로 아래에 자치구·시군 선택이 열림 → 가까운 센터 안내에 사용
+// 선택은 이 화면에서만 쓰고 저장·URL·전송 없음 (EVT-SAFE-INPUT). 선택 요약 카드 만들지 않음.
+import Choice from './Choice.astro';
+import { SEOUL_GU, GYEONGGI_SIGUN } from '../../data/regions';
+interface Props { name: string; legend: string }
+const { name, legend } = Astro.props;
+const opt = (list: string[]) => list.map((v) => ({ value: v, label: v }));
+---
+<div class="region" data-region={name}>
+  <Choice name={name} legend={legend} options={[{ value: 'seoul', label: '서울' }, { value: 'gyeonggi', label: '경기' }]} />
+  <div class="sub" data-sub="seoul" hidden>
+    <Choice name={`${name}-seoul`} legend="서울 어느 구에 계신가요?" options={opt(SEOUL_GU)} hint="가까운 센터를 먼저 안내할게요. 고르지 않아도 괜찮아요." withUnknown={false} />
+  </div>
+  <div class="sub" data-sub="gyeonggi" hidden>
+    <Choice name={`${name}-gyeonggi`} legend="경기도 어느 시·군에 계신가요?" options={opt(GYEONGGI_SIGUN)} hint="가까운 센터를 먼저 안내할게요. 고르지 않아도 괜찮아요." withUnknown={false} />
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-region]').forEach((root) => {
+    const name = root.dataset.region!;
+    const main = [...root.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`)];
+    const subs = [...root.querySelectorAll<HTMLElement>('[data-sub]')];
+    const sync = () => {
+      const v = main.find((r) => r.checked)?.value;
+      subs.forEach((s) => {
+        const show = s.dataset.sub === v;
+        if (!show) s.querySelectorAll<HTMLInputElement>('input').forEach((i) => (i.checked = false));
+        s.hidden = !show;
+      });
+    };
+    main.forEach((r) => r.addEventListener('change', sync));
+    // '선택 지우기'·뒤로 가기 복원 뒤에도 하위 목록 상태를 맞춤
+    root.closest('[data-conds]')?.querySelector('[data-clear]')?.addEventListener('click', () => setTimeout(sync));
+    window.addEventListener('pageshow', () => setTimeout(sync));
+  });
+</script>
+
+<style>
+  .sub { margin: calc(-1 * var(--space-3)) 0 var(--space-6); padding: var(--space-4); background: rgba(123, 158, 137, .08); }
+  .sub[hidden] { display: none; }
+  .sub :global(.choice) { margin-bottom: 0; }
+</style>

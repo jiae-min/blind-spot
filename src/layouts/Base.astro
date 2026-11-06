@@ -108,9 +108,6 @@ const FOOT_GROUPS = [
       <div class="foot-grid">
         <div class="foot-cell foot-brand">
           <p class="foot-logo"><svg class="logo-text" viewBox={`0 0 ${LOGO.w} ${LOGO.h}`} role="img" aria-label="blind spot"><use href="#logo-glyphs" /></svg></p>
-          <p><span class="test-badge">TEST ONLY</span></p>
-          <p class="foot-note">화면 시안이에요. 실제 지원제도 안내는 검증을 마친 뒤 게시돼요.</p>
-          {quickExit && <p class="foot-note">'빠르게 나가기'(또는 Shift 키 3번)는 화면만 바꿔요. 방문 기록은 지워지지 않아요.</p>}
         </div>
         {FOOT_GROUPS.map((g) => (
           <nav class="foot-cell" aria-label={g.title}>

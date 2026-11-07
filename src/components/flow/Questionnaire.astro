@@ -9,13 +9,13 @@ import Choice from '../wf/Choice.astro';
 import CallCard from '../wf/CallCard.astro';
 import RegionSelect from './RegionSelect.astro';
 import ResultCard from './ResultCard.astro';
-import { DANGER, HORIZON_NOTE, flagsFor, flowFor, type Opt, type Question } from '../../data/questionnaire';
+import { DANGER, flagsFor, flowFor, type Opt, type Question } from '../../data/questionnaire';
 import { contentForOption } from '../../data/content';
 import { CATEGORIES, TOP, telHref } from '../../data/emergency';
 import { href, type CaseDef, type Horizon } from '../../data/cases';
 
-interface Props { c: CaseDef; h: Horizon; title: string }
-const { c, h, title } = Astro.props;
+interface Props { c: CaseDef; h: Horizon }
+const { c, h } = Astro.props;
 const flow = flowFor(c.id, h)!;
 const flags = flagsFor(flow);
 const uid = `${c.id}-${h}`;
@@ -32,18 +32,13 @@ const cols = (all: Opt[]) => {
   const base = m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
   return n % 2 === 1 && n % 3 === 0 ? { ...base, cols: 3 } : base;
 };
+// '답 모두 지우기'는 늘 보이는 마지막 질문 칸 아래 (조건부 질문은 숨겨질 수 있어서 제외)
+const lastShown = flow.questions.map((q, i) => (q.conditionalOn ? -1 : i)).reduce((a, b) => Math.max(a, b), -1);
 const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive, soft: SOFT.test(o.label) }));
 ---
 <div class="flow sec-group" data-flow data-flags={JSON.stringify(flags)}>
-  <section class="sec tick">
-    <div class="flow-head">
-      <h2>{title}</h2>
-      <button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button>
-    </div>
-    <p class="desc flow-note">{HORIZON_NOTE[h]} 모든 질문은 건너뛰어도 괜찮아요. <strong>답한 내용은 저장하거나 어디에도 보내지 않아요.</strong></p>
-  </section>
-
-  {flow.questions.map((q) => (
+  {/* 질문 앞 안내 구역은 두지 않음 — 저장 안 함 안내는 페이지 설명에 (D-046) */}
+  {flow.questions.map((q, qi) => (
     <section class="sec tick q-sec" data-cond={q.conditionalOn?.join(' ')} hidden={!!q.conditionalOn}>
       {q.type === 'region' ? (
         <RegionSelect qid={q.id} title={q.title} current={q.id === 'current_location'} uid={`${uid}-${q.id}`} />
@@ -128,6 +123,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
           ))}
         </>
       )}
+      {qi === lastShown && <p class="clear-row"><button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button></p>}
     </section>
   ))}
 
@@ -270,9 +266,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
 </script>
 
 <style>
-  .flow-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
-  .flow-head h2 { margin: 0; }
-  .flow-note { margin: 0; }
+  .clear-row { display: flex; justify-content: flex-end; margin: var(--space-5) 0 0; }
   .clear { min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
   .q-sec[hidden], .timeline[hidden] { display: none; }
   /* 질문 제목 = 구역 제목 크기 (긴급 도움 페이지의 구역 제목과 같게) */

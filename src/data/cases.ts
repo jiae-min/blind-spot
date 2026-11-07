@@ -29,23 +29,26 @@ export const HORIZONS: { id: Horizon; title: string; sub: string }[] = [
 // base 경로(BASE_URL)를 붙인 내부 링크 — 배포 경로가 바뀌어도 그대로 동작
 export const href = (path = '') => `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 
+// 상세 페이지 설명: 형식적인 안내 대신 '내 상황에 필요한 제도'로 바로 가게 짧게, 케이스 공통 (D-046)
+const SHORT_LEAD = '지금 당장 해결 가능한 방안을 알려드릴게요. 답한 내용은 저장하거나 어디에도 보내지 않아요.';
+const LONG_LEAD = '앞으로 받을 수 있는 제도와 방법을 알려드릴게요. 답한 내용은 저장하거나 어디에도 보내지 않아요.';
 // 상세 페이지 메인 카피 (케이스 × 단기/장기) — 화면 문구, 제도 원고 아님. 제작 중(ready:false) 케이스는 비워 둬도 됨
 export const COPY: Partial<Record<CaseId, Record<Horizon, { title: string; lead: string }>>> = {
   'family-care': {
-    'short-term': { title: '돌봄이 버거운 지금, 함께 방법을 찾아볼게요.', lead: '갑작스러운 돌봄 부담을 덜 수 있도록, 지금 이용할 수 있는 도움부터 살펴보세요.' },
-    'long-term': { title: '가족을 돌보면서도, 내 삶을 놓치지 않도록.', lead: '돌봄과 생계, 학업과 미래를 함께 준비할 수 있는 방법을 안내할게요.' },
+    'short-term': { title: '돌봄이 버거운 지금, 함께 방법을 찾아볼게요.', lead: SHORT_LEAD },
+    'long-term': { title: '가족을 돌보면서도, 내 삶을 놓치지 않도록.', lead: LONG_LEAD },
   },
   'domestic-violence': {
-    'short-term': { title: '무엇보다 지금, 안전이 먼저예요.', lead: '위험한 상황에서 도움을 요청하고 보호받을 수 있는 방법을 안내할게요.' },
-    'long-term': { title: '이제는 나를 위한 일상을 준비할 수 있도록.', lead: '안전한 거처부터 경제적 독립, 법적 보호까지 필요한 방법을 찾아볼게요.' },
+    'short-term': { title: '무엇보다 지금, 안전이 먼저예요.', lead: SHORT_LEAD },
+    'long-term': { title: '이제는 나를 위한 일상을 준비할 수 있도록.', lead: LONG_LEAD },
   },
   'sexual-violence': {
-    'short-term': { title: '지금 가장 중요한 건, 안전과 건강이에요.', lead: '답해 주시면 지금 당장 필요한 걸 알려 드릴게요. 모르거나 답하기 어려우면 건너뛰어도 괜찮아요. 답한 내용은 저장하거나 어디에도 보내지 않아요.' },
-    'long-term': { title: '일상을 다시 지켜갈 수 있도록.', lead: '치료와 회복, 법률지원과 생활 안정을 위한 선택지를 살펴볼게요.' },
+    'short-term': { title: '지금 가장 중요한 건, 안전과 건강이에요.', lead: SHORT_LEAD },
+    'long-term': { title: '일상을 다시 지켜갈 수 있도록.', lead: LONG_LEAD },
   },
   'livelihood-education': {
-    'short-term': { title: '당장의 부담부터, 덜어볼 방법을 찾아볼게요.', lead: '생활비와 교육비가 걱정될 때 이용할 수 있는 지원부터 살펴보세요.' },
-    'long-term': { title: '앞으로의 선택지가 더 많아질 수 있도록.', lead: '배움과 일, 안정적인 생활을 준비하는 데 필요한 기회를 찾아볼게요.' },
+    'short-term': { title: '당장의 부담부터, 덜어볼 방법을 찾아볼게요.', lead: SHORT_LEAD },
+    'long-term': { title: '앞으로의 선택지가 더 많아질 수 있도록.', lead: LONG_LEAD },
   },
 };
 

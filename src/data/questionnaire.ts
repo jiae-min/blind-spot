@@ -103,8 +103,3 @@ export function flagsFor(flow: Flow) {
 
 /** 시·도 목록 (원본 장기 '지역' 질문의 선택지에서 '고르지 않을래요'를 뺀 것) */
 export const SIDO: string[] = (defs.domestic_violence.long.questions as RawQ[]).find((q) => q.type === 'region')!.options!.filter((o) => !o.includes('고르지'));
-
-export const HORIZON_NOTE: Record<Horizon, string> = {
-  'short-term': '지금부터 7일 안에 필요한 도움을 먼저 보여 드려요. 식사·머물 곳·긴급 비용처럼 당장 필요한 것은 해결에 더 걸려도 여기에 함께 담았어요. 신청과 심사는 7일보다 오래 걸릴 수 있어요.',
-  'long-term': '7일보다 길게 이어지는 회복과 자립을 위한 도움이에요. 첫 질문에서 지원 분야를 고르면 바로 아래에 관련 정보가 보이고, 이어지는 질문에 답할수록 조건과 순서가 다시 정리돼요.',
-};

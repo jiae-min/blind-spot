@@ -22,7 +22,7 @@ const ICONS: Record<string, string> = {
 };
 ---
 <Base title={p.title} description={p.lead} sensitive={p.sensitive} index={!p.draftNote}>
-  <div class="wrap page">
+  <div class={`wrap page page--${p.id}`}>
     <section class="sec tick opening">
       {p.kicker && <p class="kicker">{p.kicker}</p>}
       <h1>{p.headline ?? p.title}</h1>
@@ -59,12 +59,14 @@ const ICONS: Record<string, string> = {
   .draft-note { margin: var(--space-4) 0 0; padding: 10px 14px; border-left: 4px solid var(--color-accent-text); background: #fff; font-weight: 600; }
   .sec h2 { margin-bottom: var(--space-4); }
   .sec p { margin: 0 0 var(--space-3); }
+  /* 서비스 소개 본문: 첫 소개 문장(.desc)과 같은 크기 */
+  .page--about .sec p { font-size: 18px; line-height: 1.6; }
   /* 아이콘 + 제목 한 줄 */
   .ihead { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
   .ihead h2 { margin: 0; }
   .icon {
     flex: none; display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px;
-    border: 1px solid var(--line); color: var(--color-brand-secondary-strong); background: #fff;
+    color: var(--color-brand-secondary-strong);
   }
   .points { list-style: none; margin: 0; padding: 0; }
   .points li { position: relative; padding: 7px 0 7px 20px; border-bottom: 1px dashed var(--line); }

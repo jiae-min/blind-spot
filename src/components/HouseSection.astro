@@ -155,9 +155,11 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
     background: var(--color-canvas); color: var(--color-text);
     transition: background-color var(--t) var(--ease), color var(--t) var(--ease);
   }
-  .room:hover .room-label, .room:focus-visible .room-label { background: transparent; color: var(--color-on-strong); }
+  /* 호버: 이름표 바탕도 방과 같은 강조색 */
+  .room:hover .room-label, .room:focus-visible .room-label { background: var(--color-accent); color: var(--color-on-strong); }
   /* 긴급 도움: 계단 선 위에서도 읽히게 방과 같은 색 바탕, 글자는 언제나 기본색 */
-  .room--help .room-label, .room--help:is(:hover, :focus-visible) .room-label { background: #aaaca3; color: var(--color-text); }
+  .room--help .room-label { background: #aaaca3; color: var(--color-text); }
+  .room--help:is(:hover, :focus-visible) .room-label { background: var(--color-accent); color: var(--color-text); }
 
   /* 줌 상태 */
   .rooms { transition: opacity .2s; }

@@ -21,3 +21,6 @@ Thumbs.db
 
 # 승인 전 원고 — content/drafts/ 는 로컬·미리보기에서만 (공개 저장소에 올리지 않음, D-032)
 content/drafts/
+
+# 연결 검사 보고서 — 원자료·초안 제목 포함 (npm run audit:links)
+reports/

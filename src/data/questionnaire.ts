@@ -83,14 +83,7 @@ export const DANGER: Record<string, { tel: string; label: string }> = {
   'urgent_care.1': { tel: '119', label: '응급상황이라면 119에 바로 연락하세요.' },
 };
 
-/** 추천 순서 조정에 쓰는 응답 표시: 문구로 찾아서 ID를 얻음 (원본 문구가 바뀌어도 '서류'·'신고할 생각이 없어요'가 들어 있으면 동작) */
-export function flagsFor(flow: Flow) {
-  const find = (qid: string, test: (l: string) => boolean) => flow.questions.find((q) => q.id === qid)?.options.find((o) => test(o.label))?.id;
-  return {
-    noReport: find('reporting', (l) => l.includes('신고할 생각이 없어요')),
-    noDocs: find('difficulties', (l) => l.includes('서류')),
-  };
-}
+// 추천 순서 조정(신고 의사·서류·연락·비용)은 data/matching.ts 의 flagsFrom — 응답 문구로 판정
 
 /** 시·도 목록 (원본 장기 '지역' 질문의 선택지에서 '고르지 않을래요'를 뺀 것) */
 export const SIDO: string[] = (defs.domestic_violence.long.questions as RawQ[]).find((q) => q.type === 'region')!.options!.filter((o) => !o.includes('고르지'));

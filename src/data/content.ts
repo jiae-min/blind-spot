@@ -3,6 +3,8 @@
 //  - drafts.local.json: 검증 전 원고 포함 (커밋 안 함). 미리보기 빌드(--mode preview)에서만 섞어 보여 줌
 import type { CaseId, Horizon } from './cases';
 import published from './content/published.json';
+import goalsFile from './goals.json';
+import { goalIndex, linkedFor, optionKey, type Conditions, type Goal, type Need } from './matching';
 
 export interface ContentItem {
   id: string;
@@ -24,6 +26,8 @@ export interface ContentItem {
   evidence: { title: string; url: string; checkedAt: string | null }[];
   order: number;
   draft: boolean;
+  /** 운영자 결정으로 공개 조건 없이 검수 완료 취급된 원고 (export TREAT_DRAFTS_AS_APPROVED=1, D-044) */
+  approvalOverride?: boolean;
   /** 다른 카드에 합쳐진 원고면 대표 카드 ID (목록에 따로 나오지 않음) */
   mergedInto?: string;
   mergedIds?: string[];
@@ -31,13 +35,17 @@ export interface ContentItem {
   editorial: Editorial | null;
   /** 질문 화면 연결 (v0.5 후속, D-039): 이 원고를 바로 아래에 보여 줄 선택지 ID (data/questionnaire.ts) */
   helpOptions?: string[];
-  /** 공식 조건 — 응답과 비교해 '기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치'만 표시. 삭제하지 않음 */
+  /** 해결 목표 ID (src/data/goals.json). 이 목표에 연결된 모든 선택지 아래에 보여 줌 — 같은 원고를 한 번만 적고 여러 선택지에 재사용 */
+  goals?: string[];
+  /** 공식 조건 — 응답과 비교해 '기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치'만 표시. 삭제하지 않음 (data/matching.ts) */
   conditions?: ItemConditions;
-  /** 실행 경로 표시: report = 신고가 필요한 경로, documents = 서류가 필요한 경로 → 응답에 따라 순서·안내만 조정 */
-  needs?: ('report' | 'documents')[];
+  /** 실행 경로 표시: report = 신고가 필요한 경로, documents = 서류가 필요한 경로, visit = 방문이 필요한 경로 → 응답에 따라 순서·안내만 조정 */
+  needs?: Need[];
+  /** 공식 제도명 (비우면 '추가 확인 필요') */
+  programName?: string;
   institution?: string; eligibility?: string; access?: string; hours?: string;
 }
-export interface ItemConditions { regions?: string[]; ageMin?: number; ageMax?: number }
+export type ItemConditions = Conditions;
 
 export interface Editorial {
   approved: boolean;
@@ -80,8 +88,8 @@ export interface EditableItem {
   sources: { title: string; url: string }[];
   checkedAt: string; nextCheck: string; cases?: CaseId[];
   approvedBy?: string; approvedAt?: string; approvedHash?: string;
-  helpOptions?: string[]; conditions?: ItemConditions; needs?: ('report' | 'documents')[];
-  institution?: string; eligibility?: string; access?: string; hours?: string;
+  helpOptions?: string[]; goals?: string[]; conditions?: ItemConditions; needs?: Need[];
+  programName?: string; institution?: string; eligibility?: string; access?: string; hours?: string;
 }
 type EditableFile = { case: CaseId; items: EditableItem[] };
 const fromEditable = (file: string, f: EditableFile, draft: boolean): ContentItem[] =>
@@ -97,8 +105,8 @@ const fromEditable = (file: string, f: EditableFile, draft: boolean): ContentIte
       order: e.order, draft,
       // 단계 카드는 쓴 그대로 보여 줌(행동형 제목·도움 목록). FAQ는 답을 문장으로 나눠 보여 줌
       editorial: e.kind === 'guide' ? { approved: !draft, action: e.title, subtitle: e.subtitle, benefits: e.points ?? [], notes: e.notes ?? [], costs: costs.length ? costs : undefined } : null,
-      helpOptions: e.helpOptions, conditions: e.conditions, needs: e.needs,
-      institution: e.institution, eligibility: e.eligibility, access: e.access, hours: e.hours,
+      helpOptions: e.helpOptions, goals: e.goals, conditions: e.conditions, needs: e.needs,
+      programName: e.programName, institution: e.institution, eligibility: e.eligibility, access: e.access, hours: e.hours,
     };
   });
 const editableFiles = import.meta.glob<EditableFile>('../../content/*.json', { eager: true, import: 'default' });
@@ -121,10 +129,15 @@ export const CONTENT: ContentItem[] = [
 /** 오늘 기준 확인 기한이 지났는지 (빌드 시각 기준) */
 export const isStale = (i: Pick<ContentItem, 'nextCheck'>, today = new Date().toISOString().slice(0, 10)) => !!i.nextCheck && i.nextCheck < today;
 
-/** 질문 화면: 이 선택지 바로 아래에 보여 줄 확인된 원고 (같은 원고는 여러 선택지에서 재사용) */
-export const contentForOption = (c: CaseId, h: Horizon, optionId: string) =>
-  CONTENT.filter((i) => i.kind === 'guide' && i.horizon === h && i.cases.includes(c) && !i.mergedInto && i.helpOptions?.includes(optionId))
-    .sort((a, b) => a.order - b.order);
+/** 선택지 → 해결 목표 연결표 (src/data/goals.json) */
+export const GOALS = (goalsFile as { goals: Goal[] }).goals;
+export const GOAL_FIELDS = (goalsFile as { fields: Record<string, string> }).fields;
+const goalIdx = goalIndex(GOALS);
+export const goalsForOption = (c: CaseId, h: Horizon, optionId: string) =>
+  (goalIdx.get(optionKey(c, h, optionId)) ?? []).map((id) => GOALS.find((g) => g.id === id)!);
+
+/** 질문 화면: 이 선택지 바로 아래에 보여 줄 원고 — 직접 지정(helpOptions) + 같은 해결 목표(goals). 같은 원고는 여러 선택지에서 재사용 */
+export const contentForOption = (c: CaseId, h: Horizon, optionId: string) => linkedFor(CONTENT, goalIdx, c, h, optionId);
 
 export const contentFor = (c: CaseId, h: Horizon, kind: ContentItem['kind']) =>
   CONTENT.filter((i) => i.kind === kind && i.horizon === h && i.cases.includes(c) && !i.mergedInto)

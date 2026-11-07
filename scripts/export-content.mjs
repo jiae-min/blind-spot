@@ -39,10 +39,16 @@ if (!RAW || !existsSync(RAW)) {
 }
 
 const load = (rel) => JSON.parse(readFileSync(join(RAW, rel), 'utf8'));
+// 운영자 결정(2026-11-07, D-044): TREAT_DRAFTS_AS_APPROVED=1 이면 사용자용 원고 전부를 검수 완료로 취급해 공개본에 넣음.
+// 원자료의 승인 기록은 바꾸지 않고, 원고에 approvalOverride: true 표시만 남김 (끄면 원래 공개 조건으로 돌아감)
+const OVERRIDE = env.TREAT_DRAFTS_AS_APPROVED === '1';
 const stageMap = JSON.parse(readFileSync(join(ROOT, 'scripts/stage-map.json'), 'utf8'));
 // 단계 카드 편집안 (저장소 밖, 선택). 승인된 편집안만 공개본에 들어감
 const EDITORIAL = env.EDITORIAL_FILE && existsSync(env.EDITORIAL_FILE) ? JSON.parse(readFileSync(env.EDITORIAL_FILE, 'utf8')).items : {};
 const stepOrder = JSON.parse(readFileSync(join(ROOT, 'scripts/step-order.json'), 'utf8')).order;
+// 원고 → 해결 목표 연결 (원자료에 선택지 연결 칸이 없음). 없는 목표 ID는 아래에서 멈춤
+const linkMap = JSON.parse(readFileSync(join(ROOT, 'scripts/link-map.json'), 'utf8'));
+const goalIds = new Set(JSON.parse(readFileSync(join(ROOT, 'src/data/goals.json'), 'utf8')).goals.map((g) => g.id));
 
 // ── 원자료
 const status = load('04_ContentEditing/json/CurrentContentStatus.json'); // 현재 승인·QA 상태 (기준)
@@ -95,6 +101,9 @@ for (const s of status) {
   const evUnique = ev.filter((e) => (seen.has(e.url) ? false : seen.add(e.url)));
   const checkedAt = evUnique.map((e) => e.checkedAt).filter(Boolean).sort().at(-1) ?? null;
 
+  const goals = linkMap[s.record_id];
+  (goals ?? []).filter((g) => !goalIds.has(g)).forEach((g) => problems.push(`${s.record_id}: scripts/link-map.json 의 목표 "${g}"가 src/data/goals.json 에 없음`));
+
   const publishable =
     s.publish_allowed === true &&
     s.operator_decision === 'APPROVED' &&
@@ -116,7 +125,9 @@ for (const s of status) {
     evidence: evUnique,
     editorial: EDITORIAL[s.record_id] ?? null,
     order: stepOrder.includes(s.record_id) ? stepOrder.indexOf(s.record_id) : 999,
-    draft: !publishable,
+    ...(goals ? { goals } : {}),
+    ...(OVERRIDE && !publishable ? { approvalOverride: true } : {}),
+    draft: OVERRIDE ? false : !publishable,
   });
 }
 
@@ -183,6 +194,7 @@ writeFileSync(join(OUT_DIR, 'resources.json'), JSON.stringify(resources.filter((
 writeFileSync(join(OUT_DIR, 'resources.local.json'), JSON.stringify(resources, null, 2) + '\n');
 console.log(`  기관: ${resources.length}곳 (공개 가능 ${resources.filter((r) => !r.draft).length}곳) → resources.json / resources.local.json`);
 
+if (OVERRIDE) console.warn(`⚠ TREAT_DRAFTS_AS_APPROVED=1 — 공개 조건을 건너뛰고 원고 ${items.filter((i) => i.approvalOverride).length}건을 검수 완료로 취급해 published.json 에 넣었어요. 이 파일을 커밋·푸시하면 공개 주소에 나가요.`);
 console.log(`원고 ${status.length}건 → 사용자용 ${items.length}건 (제외 ${skipped}건: 연구 메모·전문가 검토용)`);
 console.log(`  편집안: ${Object.keys(EDITORIAL).length}건 (${env.EDITORIAL_FILE ? 'EDITORIAL_FILE' : '설정 없음'})`);
 console.log(`  공개 가능: ${published.length}건 → src/data/content/published.json`);

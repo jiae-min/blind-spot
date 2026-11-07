@@ -23,7 +23,8 @@ const canon = (v) => Array.isArray(v) ? `[${v.map(canon).join(',')}]`
   : JSON.stringify(v);
 const itemHash = (it) => createHash('sha256').update(canon(Object.fromEntries(Object.entries(it).filter(([k]) => !APPROVAL_KEYS.includes(k))))).digest('hex').slice(0, 16);
 const HASH_MODE = process.argv.includes('--hash');
-const NEEDS = ['report', 'documents'];
+const NEEDS = ['report', 'documents', 'visit'];
+const GOAL_IDS = new Set(JSON.parse(readFileSync(new URL('../src/data/goals.json', import.meta.url), 'utf8')).goals.map((g) => g.id));
 
 // 질문 화면 선택지 ID (src/data/questionnaire.ts와 같은 규칙: 묶음ID.번호 / 질문ID.번호 / help.none)
 // helpOptions에 없는 ID를 적으면 빌드를 멈춤 — 원본 질문 순서가 바뀌어 ID가 밀렸을 때 바로 알 수 있게
@@ -37,6 +38,12 @@ const optionIds = (caseId, horizon) => {
   groups.forEach((g) => g.options.forEach((_, i) => out.add(`${g.id}.${i + 1}`)));
   out.add(horizon === 'short-term' ? 'help.none' : 'goals.none');
   return out;
+};
+// 조건 칸 conditions.answers 에 쓸 수 있는 질문ID → 선택지 문구 (그 케이스·기간 질문에 실제로 있는 문구만)
+const questionLabels = (caseId, horizon) => {
+  const d = Q[QKEY[caseId]];
+  const qs = !d ? [] : horizon === 'short-term' ? d.short.quick_questions : d.long.questions;
+  return new Map(qs.filter((q) => Array.isArray(q.options) && q.options.length).map((q) => [q.id, new Set(q.options)]));
 };
 
 const today = new Date().toISOString().slice(0, 10);
@@ -72,13 +79,28 @@ function checkFile(path, label, draft) {
     }
     if (it.conditions !== undefined) {
       const c = it.conditions;
-      need(c && typeof c === 'object', '"conditions"는 { regions, ageMin, ageMax } 형식이어야 해요');
+      need(c && typeof c === 'object', '"conditions"는 { regions, ageMin, ageMax, answers } 형식이어야 해요');
       need(c?.regions === undefined || strArr(c.regions), '"conditions.regions"는 시·도 이름 목록이어야 해요 (예: "서울특별시")');
       need(c?.ageMin === undefined || Number.isInteger(c.ageMin), '"conditions.ageMin"은 정수여야 해요');
       need(c?.ageMax === undefined || Number.isInteger(c.ageMax), '"conditions.ageMax"는 정수여야 해요');
+      if (c?.answers !== undefined) {
+        need(c.answers && typeof c.answers === 'object' && !Array.isArray(c.answers), '"conditions.answers"는 { "질문ID": ["선택지 문구"] } 형식이어야 해요');
+        const qmaps = (it.cases ?? [data.case]).map((cs) => questionLabels(cs, it.horizon));
+        for (const [qid, labels] of Object.entries(c.answers ?? {})) {
+          need(strArr(labels) && labels.length > 0, `"conditions.answers.${qid}"는 선택지 문구 목록이어야 해요`);
+          const known = qmaps.map((m) => m.get(qid)).filter(Boolean);
+          if (!known.length) { errors.push(`${at}: "conditions.answers"의 질문 "${qid}"는 이 케이스·기간 질문에 없어요`); continue; }
+          (labels ?? []).filter((l) => !known.some((s) => s.has(l))).forEach((l) => errors.push(`${at}: "conditions.answers.${qid}"의 "${l}"는 질문 선택지 문구와 달라요 (띄어쓰기·마침표까지 같아야 해요)`));
+        }
+      }
     }
+    if (it.goals !== undefined) {
+      need(strArr(it.goals), '"goals"는 해결 목표 ID 목록이어야 해요');
+      (it.goals ?? []).filter((g) => !GOAL_IDS.has(g)).forEach((g) => errors.push(`${at}: "goals"의 "${g}"는 src/data/goals.json 에 없는 목표예요`));
+    }
+    need(it.programName === undefined || str(it.programName), '"programName"(공식 제도명)이 비었어요 — 모르면 칸을 지워 두면 \'추가 확인 필요\'로 보여요');
     need(it.needs === undefined || (Array.isArray(it.needs) && it.needs.every((n) => NEEDS.includes(n))), `"needs"는 ${NEEDS.join(' / ')} 중에서만 적어 주세요`);
-    for (const k of ['institution', 'eligibility', 'access', 'hours']) need(it[k] === undefined || str(it[k]), `"${k}"가 비었어요 — 모르면 칸을 지워 두면 '기관 확인 필요'로 보여요`);
+    for (const k of ['institution', 'eligibility', 'access', 'hours']) need(it[k] === undefined || str(it[k]), `"${k}"가 비었어요 — 모르면 칸을 지워 두면 '추가 확인 필요'로 보여요`);
     (it.costs ?? []).forEach((c, k) => {
       need(str(c?.item), `비용 ${k + 1}: "item"이 비었어요`);
       need(COSTS.includes(c?.value), `비용 ${k + 1}: "value"는 ${COSTS.join(' / ')} 중 하나여야 해요`);

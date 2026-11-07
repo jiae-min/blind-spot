@@ -9,7 +9,7 @@ import Choice from '../wf/Choice.astro';
 import CallCard from '../wf/CallCard.astro';
 import RegionSelect from './RegionSelect.astro';
 import ResultCard from './ResultCard.astro';
-import { DANGER, HORIZON_NOTE, flagsFor, flowFor, type Opt, type Question } from '../../data/questionnaire';
+import { DANGER, HORIZON_NOTE, flowFor, type Opt, type Question } from '../../data/questionnaire';
 import { contentForOption } from '../../data/content';
 import { CATEGORIES, TOP, telHref } from '../../data/emergency';
 import type { CaseDef, Horizon } from '../../data/cases';
@@ -17,8 +17,12 @@ import type { CaseDef, Horizon } from '../../data/cases';
 interface Props { c: CaseDef; h: Horizon; title: string }
 const { c, h, title } = Astro.props;
 const flow = flowFor(c.id, h)!;
-const flags = flagsFor(flow);
 const uid = `${c.id}-${h}`;
+// 조건 판정·개인화(data/matching.ts)에 넘길 응답 문구: 선택지 ID → 문구 (지원 분야 선택지 제외). 화면 안에서만 씀
+const labels = Object.fromEntries(flow.questions.filter((q) => q.type !== 'help').flatMap((q) => q.options.map((o) => [o.id, o.label])));
+const qTitles = Object.fromEntries(flow.questions.map((q) => [q.id, q.title]));
+// 단기의 지역 질문은 '지금 계신 곳' → 주소지 조건의 근거로 쓰지 않음 (불일치 대신 추가 확인 필요)
+const sidoSource = h === 'short-term' ? 'current' : 'residence';
 // '아직 모르겠어요'를 골랐을 때: 어떤 도움이 맞을지 같이 찾아 주는 곳 (운영자 확정 연락처, data/emergency.ts)
 const guideCall = c.sensitive ? TOP[2] : CATEGORIES.find((x) => x.id === 'welfare')!.items[0];
 const results = (o: Opt) => contentForOption(c.id, h, o.id);
@@ -29,7 +33,7 @@ const cols = (opts: Opt[]) => {
 };
 const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive }));
 ---
-<div class="flow sec-group" data-flow data-flags={JSON.stringify(flags)}>
+<div class="flow sec-group" data-flow data-labels={JSON.stringify(labels)} data-sido-source={sidoSource}>
   <section class="sec tick">
     <div class="flow-head">
       <h2>{title}</h2>
@@ -62,8 +66,9 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
                     return (
                       <>
                         <label class="opt"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
-                        <div class="res" data-res hidden>
-                          {items.length > 0 ? items.map((it) => <ResultCard item={it} />) : (
+                        <div class="res" data-res data-opt-label={o.label} hidden>
+                          <p class="dup" data-dup hidden></p>
+                          {items.length > 0 ? items.map((it) => <ResultCard item={it} qTitles={qTitles} />) : (
                             <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. 아래 <a href="#contacts">긴급 연락처와 도움말</a>의 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
                           )}
                         </div>
@@ -113,8 +118,22 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
 </div>
 
 <script>
+  import { COND_NAMES, STATUS_LABEL, compareRank, dedupe, eligibility, flagsFrom, personalize, type Answers, type Conditions } from '../../data/matching';
+
   document.querySelectorAll<HTMLElement>('[data-flow]').forEach((flow) => {
-    const flags: { noReport?: string; noDocs?: string } = JSON.parse(flow.dataset.flags || '{}');
+    const labels: Record<string, string> = JSON.parse(flow.dataset.labels || '{}');
+    const sidoSource = (flow.dataset.sidoSource || 'residence') as Answers['sidoSource'];
+    // 지원 분야 외 질문의 고른 답: 질문ID → 문구 (선택지 ID '질문ID.번호')
+    const picks = () => {
+      const out: Record<string, string[]> = {};
+      flow.querySelectorAll<HTMLInputElement>('input:checked:not([data-opt])').forEach((i) => {
+        const label = labels[i.value];
+        if (!label) return; // 지역 버튼 등
+        const q = i.value.slice(0, i.value.lastIndexOf('.'));
+        (out[q] ??= []).push(label);
+      });
+      return out;
+    };
     const inputs = () => [...flow.querySelectorAll<HTMLInputElement>('input[type=checkbox], input[type=radio]')];
     const isOn = (v?: string) => !!v && !!flow.querySelector<HTMLInputElement>(`input[value="${v}"]:checked`);
 
@@ -167,33 +186,59 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
         if (!show) w.querySelectorAll<HTMLInputElement>('input').forEach((i) => (i.checked = false));
       });
 
-      // 결과 카드 상태·순서 재평가 (삭제하지 않음)
-      const a = age(), s = sido();
-      const noReport = isOn(flags.noReport), noDocs = isOn(flags.noDocs);
-      flow.querySelectorAll<HTMLElement>('[data-res]').forEach((res) => {
+      // 결과 카드 상태·순서 재평가 (삭제하지 않음) — 규칙은 data/matching.ts
+      //  A. 공식 조건(지역·나이·소득·가구·돌봄 대상·관계 등) → 상태 3가지. 답이 없으면 '추가 확인 필요'
+      //  B. 신고 의사·서류·연락 방법·비용 → 순서와 안내 문장만. 불일치로 만들지 않음
+      const p = picks();
+      const answers: Answers = { sido: sido() || undefined, sidoSource, age: age(), picks: p };
+      const f = flagsFrom(p);
+      const allRes = [...flow.querySelectorAll<HTMLElement>('[data-res]')];
+      allRes.forEach((res) => {
         const cards = [...res.querySelectorAll<HTMLElement>('[data-rc]')];
         const scored = cards.map((card) => {
-          let unknown = false, mismatch = false;
-          const regions = card.dataset.regions?.split('|').filter(Boolean);
-          if (regions?.length) { if (!s) unknown = true; else if (!regions.includes(s)) mismatch = true; }
-          const min = card.dataset.ageMin ? Number(card.dataset.ageMin) : null, max = card.dataset.ageMax ? Number(card.dataset.ageMax) : null;
-          if (min !== null || max !== null) {
-            if (a === null) unknown = true;
-            else if ((min !== null && a < min) || (max !== null && a > max)) mismatch = true;
-          }
-          const hasCond = !!regions?.length || min !== null || max !== null;
-          const v = mismatch ? 'no' : unknown || !hasCond ? 'check' : 'ok';
+          const { status, checks } = eligibility(JSON.parse(card.dataset.elig || '{}') as Conditions, answers);
           const st = card.querySelector<HTMLElement>('[data-st]')!;
-          st.dataset.v = v;
-          st.textContent = v === 'ok' ? '기본 조건 부합 (최종 심사 아님)' : v === 'no' ? '확인된 조건 불일치' : '추가 확인 필요';
-          const needs = (card.dataset.needs || '').split(' ');
-          const repLow = noReport && needs.includes('report');
-          card.querySelector<HTMLElement>('[data-note="report"]')!.hidden = !repLow;
-          card.querySelector<HTMLElement>('[data-note="documents"]')!.hidden = !(noDocs && needs.includes('documents'));
-          card.querySelector<HTMLElement>('[data-note="mismatch"]')!.hidden = v !== 'no';
-          return { card, rank: (v === 'ok' ? 0 : v === 'check' ? 1 : 2) + (repLow ? 3 : 0), order: Number(card.dataset.order) || 0 };
+          st.dataset.v = status;
+          st.textContent = STATUS_LABEL[status];
+          // 상태 이유 (답하지 않은 조건 · 지금 위치 기준 · 조건 정보 없음)
+          const name = (k: string) => COND_NAMES[k] ?? k;
+          const unanswered = checks.filter((c) => c.why === 'unanswered').map((c) => name(c.key));
+          const why = !checks.length ? '공식 조건이 아직 정리되지 않았어요. 신청 전에 기관에 확인해 주세요.'
+            : [unanswered.length ? `${unanswered.join('·')}에 답하면 조건을 다시 확인해요. 답하지 않아도 안내는 그대로 보여요.` : '',
+               checks.some((c) => c.why === 'current-location') ? '지금 계신 곳 기준이라, 주소지 조건은 기관에 확인해 주세요.' : ''].filter(Boolean).join(' ');
+          const w = card.querySelector<HTMLElement>('[data-why]')!;
+          w.textContent = why;
+          w.hidden = !why;
+          const { notes, weight } = personalize({ needs: (card.dataset.needs || '').split(' ').filter(Boolean), costValues: (card.dataset.costs || '').split('|').filter(Boolean) }, f);
+          card.querySelectorAll<HTMLElement>('[data-note]').forEach((n) => {
+            n.hidden = n.dataset.note === 'mismatch' ? status !== 'no' : !(notes as string[]).includes(n.dataset.note!);
+          });
+          return { card, status, weight, order: Number(card.dataset.order) || 0 };
         });
-        scored.sort((x, y) => x.rank - y.rank || x.order - y.order).forEach(({ card }) => res.appendChild(card));
+        scored.sort(compareRank).forEach(({ card }) => res.appendChild(card));
+      });
+
+      // 여러 항목을 골랐을 때 같은 안내는 처음 나온 곳에만 (나머지는 '위와 같음' 안내)
+      const open = allRes.filter((r) => !r.hidden);
+      const ids = (r: HTMLElement) => [...r.querySelectorAll<HTMLElement>('[data-rc]')].map((c) => c.dataset.id!);
+      const dd = dedupe(open.map((r, n) => ({ option: String(n), ids: ids(r) })));
+      allRes.forEach((r) => {
+        r.querySelectorAll<HTMLElement>('[data-rc]').forEach((c) => (c.hidden = false));
+        const box = r.querySelector<HTMLElement>('[data-dup]'); // '아직 모르겠어요' 칸에는 없음
+        if (box) box.hidden = true;
+      });
+      const shown = new Map<HTMLElement, { show: number; dup: number }>();
+      dd.forEach(({ show, dupOf }, n) => {
+        const r = open[n];
+        const dupIds = Object.keys(dupOf);
+        r.querySelectorAll<HTMLElement>('[data-rc]').forEach((c) => (c.hidden = dupIds.includes(c.dataset.id!)));
+        const box = r.querySelector<HTMLElement>('[data-dup]');
+        if (box && dupIds.length) {
+          const where = [...new Set(dupIds.map((id) => open[Number(dupOf[id])].dataset.optLabel))].map((l) => `‘${l}’`).join(', ');
+          box.textContent = `이 항목과 관련된 안내 ${dupIds.length}개는 위 ${where} 아래에 이미 있어요.`;
+          box.hidden = false;
+        }
+        shown.set(r, { show: show.length, dup: dupIds.length });
       });
 
       // 타임라인: 고른 항목을 분야 순서대로
@@ -205,9 +250,9 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
         const grp = i.closest('details')?.querySelector('.grp-name')?.textContent;
         if (grp) { const g = document.createElement('span'); g.className = 'tl-g'; g.textContent = grp; li.append(g); }
         const t = document.createElement('span'); t.className = 'tl-t'; t.textContent = i.parentElement!.querySelector('span')!.textContent!; li.append(t);
-        const n = (i.closest('.opt')!.nextElementSibling as HTMLElement).querySelectorAll('[data-rc]').length;
+        const cnt = shown.get(i.closest('.opt')!.nextElementSibling as HTMLElement) ?? { show: 0, dup: 0 };
         const m = document.createElement('span'); m.className = 'tl-m';
-        m.textContent = n ? `확인된 안내 ${n}개` : '상담기관에 확인';
+        m.textContent = cnt.show ? `확인된 안내 ${cnt.show}개${cnt.dup ? ` (다른 ${cnt.dup}개는 위와 같음)` : ''}` : cnt.dup ? `확인된 안내 ${cnt.dup}개는 위와 같음` : '상담기관에 확인';
         li.append(m);
         list.append(li);
       });
@@ -270,6 +315,8 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
   .res--edge { border-right: 1px solid var(--color-text); }
   .res[hidden] { display: none; }
   .empty { margin: 0 0 var(--space-2); font-size: 15px; }
+  .dup { margin: 0 0 var(--space-2); font-size: 15px; font-weight: 600; }
+  .dup[hidden] { display: none; }
   .age { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
   .age input { width: 7em; min-height: 52px; padding: 0 12px; font: inherit; font-size: 17px; border: 1px solid var(--color-text); border-radius: 0; background: var(--color-canvas); color: inherit; }
   .age input:hover { border-color: var(--color-accent); }

@@ -11,10 +11,10 @@ export interface CaseDef {
 }
 
 export const CASES: CaseDef[] = [
-  { id: 'family-care', label: '가족돌봄', prompt: '가족을 돌보고 있어요', sensitive: false, ready: false },
+  { id: 'family-care', label: '가족돌봄', prompt: '가족을 돌보고 있어요', sensitive: false, ready: true },
   { id: 'domestic-violence', label: '가정폭력', prompt: '가정폭력으로 도움이 필요해요', sensitive: true, ready: true },
-  { id: 'sexual-violence', label: '성폭력', prompt: '성폭력 피해로 도움이 필요해요', sensitive: true, ready: false },
-  { id: 'livelihood-education', label: '생계·교육', prompt: '생활비와 교육비가 부담돼요', sensitive: false, ready: false },
+  { id: 'sexual-violence', label: '성폭력', prompt: '성폭력 피해로 도움이 필요해요', sensitive: true, ready: true },
+  { id: 'livelihood-education', label: '생계·교육', prompt: '생활비와 교육비가 부담돼요', sensitive: false, ready: true },
   { id: 'reclusive-youth', label: '은둔 청년', prompt: '오랫동안 집 밖에 나가기 어려웠어요', sensitive: false, ready: false },
 ];
 

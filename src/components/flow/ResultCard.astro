@@ -1,24 +1,34 @@
 ---
-// 선택지 바로 아래 결과 카드 (v0.5 후속). 승인된 원고(content/*.json)에 적힌 사실만 보여 주고,
-// 적히지 않은 칸은 '기관 확인 필요'로 둠. 자격 승인을 단정하지 않음.
-// 상태(기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치)는 응답에 따라 브라우저에서 다시 계산 — 카드를 지우지 않음.
+// 선택지 바로 아래 결과 카드 (v0.5 후속). 원고(content/*.json · 원자료 내보내기)에 적힌 사실만 보여 주고,
+// 적히지 않은 칸은 '추가 확인 필요'로 둠. 자격 승인을 단정하지 않음.
+// 상태(기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치)와 순서는 응답에 따라 브라우저에서 다시 계산 — 카드를 지우지 않음.
+// 판정 규칙은 data/matching.ts (검수 명령 scripts/check-links.mjs 와 같은 규칙)
 import Evidence from '../wf/Evidence.astro';
 import { COST_LABEL, presentGuide, type ContentItem } from '../../data/content';
-interface Props { item: ContentItem }
-const { item } = Astro.props;
+import { COND_NAMES, STATUS_LABEL } from '../../data/matching';
+interface Props { item: ContentItem; qTitles?: Record<string, string> }
+const { item, qTitles = {} } = Astro.props;
 const v = presentGuide(item);
 const costs = item.editorial?.costs ?? null;
 const cond = item.conditions ?? {};
-const UNKNOWN = '기관 확인 필요';
+const UNKNOWN = '추가 확인 필요';
+// 공식 조건을 사람이 읽는 문장으로 (원고에 적힌 값만)
+const age = cond.ageMin !== undefined || cond.ageMax !== undefined
+  ? `${cond.ageMin !== undefined ? `${cond.ageMin}세 이상` : ''}${cond.ageMin !== undefined && cond.ageMax !== undefined ? ' ' : ''}${cond.ageMax !== undefined ? `${cond.ageMax}세 이하` : ''}` : null;
+const condLines = [
+  cond.regions?.length ? `지역: ${cond.regions.join(', ')}` : null,
+  age ? `나이: ${age}` : null,
+  ...Object.entries(cond.answers ?? {}).map(([q, ls]) => `${COND_NAMES[q] ?? qTitles[q] ?? q}: ${ls.join(', ')}`),
+].filter(Boolean);
 ---
 <article class="rc" data-rc
-  data-regions={cond.regions?.join('|')}
-  data-age-min={cond.ageMin}
-  data-age-max={cond.ageMax}
+  data-id={item.id}
+  data-elig={JSON.stringify(cond)}
   data-needs={item.needs?.join(' ')}
+  data-costs={costs?.map((c) => c.value).join('|')}
   data-order={item.order}>
   <p class="rc-meta">
-    <span class="st" data-st>추가 확인 필요</span>
+    <span class="st" data-st>{STATUS_LABEL.check}</span>
     {item.draft && <span class="draft-tag">검증 전 초안</span>}
   </p>
   <h4>{v.title}</h4>
@@ -26,14 +36,21 @@ const UNKNOWN = '기관 확인 필요';
   <p class="sub">{v.subtitle}</p>
   {v.list.length > 0 && <ul class="pts">{v.list.map((t) => <li>{t}</li>)}</ul>}
   <dl class="facts">
-    <div><dt>대상</dt><dd>{item.eligibility ?? UNKNOWN}</dd></div>
+    <div><dt>공식 제도명</dt><dd>{item.programName ?? UNKNOWN}</dd></div>
+    <div><dt>신청 조건</dt><dd>
+      {item.eligibility ?? (condLines.length ? null : UNKNOWN)}
+      {condLines.length > 0 && <ul class="cond">{condLines.map((l) => <li>{l}</li>)}</ul>}
+    </dd></div>
     <div><dt>이용 방법</dt><dd>{item.access ?? UNKNOWN}</dd></div>
     <div><dt>비용</dt><dd>{costs ? costs.map((c) => <span class="cost"><strong>{c.item}</strong> {c.value} <span class="std">({COST_LABEL[c.value]})</span></span>) : item.costStatus}</dd></div>
     <div><dt>운영시간</dt><dd>{item.hours ?? UNKNOWN}</dd></div>
   </dl>
   {v.notes.length > 0 && <ul class="notes">{v.notes.map((n) => <li>{n}</li>)}</ul>}
+  <p class="why" data-why hidden></p>
   <p class="adj" data-note="report" hidden>신고하지 않아도 상담을 먼저 받을 수 있는지 기관에 확인해 보세요. 신고는 원할 때 결정해도 괜찮아요.</p>
   <p class="adj" data-note="documents" hidden>서류가 없어도 상담부터 시작할 수 있는지, 대신 낼 수 있는 자료가 있는지 기관에 확인해 보세요.</p>
+  <p class="adj" data-note="visit" hidden>직접 방문이나 전화가 어렵다면, 다른 연락 방법이 있는지 기관에 확인해 보세요.</p>
+  <p class="adj" data-note="cost" hidden>비용이 걱정된다면 감면이나 비용 지원이 있는지 기관에 확인해 보세요.</p>
   <p class="adj" data-note="mismatch" hidden>고른 답과 공식 조건이 맞지 않는 부분이 있어요. 예외가 있을 수 있으니 기관에 확인해 보세요.</p>
   <Evidence item={item} />
 </article>
@@ -41,6 +58,7 @@ const UNKNOWN = '기관 확인 필요';
 <style>
   .rc { border: 1px solid var(--line); background: #fff; padding: var(--space-4); }
   .rc + .rc { margin-top: var(--space-3); }
+  .rc[hidden] { display: none; }
   .rc-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
   .st, .draft-tag { font-size: 13px; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
   .st[data-v='ok'] { background: var(--color-brand-secondary-strong); border-color: var(--color-brand-secondary-strong); color: var(--color-on-strong); }
@@ -51,11 +69,14 @@ const UNKNOWN = '기관 확인 필요';
   .sub { margin: 0 0 var(--space-2); }
   .pts, .notes { margin: 0 0 var(--space-3); padding-left: 1.2em; }
   .facts { display: grid; gap: 4px; margin: 0 0 var(--space-3); font-size: 15px; }
-  .facts div { display: grid; grid-template-columns: 6em 1fr; gap: 8px; }
+  .facts div { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px; }
   .facts dt { font-weight: 700; }
   .facts dd { margin: 0; }
+  .cond { margin: 0; padding-left: 1.1em; }
   .cost { display: block; }
   .std { font-size: 13px; }
+  .why { margin: 0 0 var(--space-2); font-size: 14px; }
+  .why[hidden] { display: none; }
   .adj { margin: 0 0 var(--space-2); padding: 8px 12px; background: rgba(123, 158, 137, .12); font-size: 15px; font-weight: 600; }
   .adj[hidden] { display: none; }
 </style>

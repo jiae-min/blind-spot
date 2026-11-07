@@ -68,10 +68,18 @@
 
 | 칸 | 뜻 | 예 |
 |---|---|---|
-| `helpOptions` | 이 원고를 보여 줄 선택지 ID 목록. 같은 원고를 여러 선택지에 걸어도 돼요 | `["immediate_safety.1", "basic_needs.2"]` |
-| `conditions` | 공식 조건. 사용자의 답과 비교해 **기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치** 상태만 붙여요. 원고를 숨기지 않아요 | `{ "regions": ["서울특별시"], "ageMin": 19, "ageMax": 64 }` |
-| `needs` | 이 경로에 필요한 것: `report`(신고), `documents`(서류). "신고할 생각 없음"·"서류 없음"을 고른 사람에게 순서를 뒤로 미루고 안내 문장을 붙여요. 지우지 않아요 | `["report"]` |
-| `institution` · `eligibility` · `access` · `hours` | 기관명 · 대상 · 이용 방법 · 운영시간. 비우면 화면에 "기관 확인 필요" | `"hours": "365일 24시간"` |
+| `goals` | **권장.** 해결 목표 ID 목록(`src/data/goals.json`). 이 목표에 연결된 모든 선택지 아래에 보여요 — 제도명을 모르는 사람도 목표로 찾게. 원고는 한 번만 쓰고, 케이스가 여럿이면 `cases`에 함께 적어요 | `["degree"]` → 생계·교육 장기 "학위나 학력을 취득하고 싶어요", 가족돌봄 장기 "중단한 학업을 이어가고 싶어요" 등 |
+| `helpOptions` | 이 원고를 보여 줄 선택지 ID를 직접 지정 (목표로 묶기 어려운 특별한 경우). 같은 원고를 여러 선택지에 걸어도 돼요 | `["immediate_safety.1", "basic_needs.2"]` |
+| `programName` | 공식 제도명. 비우면 "추가 확인 필요" | `"국민취업지원제도"` |
+| `conditions` | 공식 자격조건. 사용자의 답과 비교해 **기본 조건 부합(최종 선정은 별도 심사) / 추가 확인 필요 / 확인된 조건 불일치** 상태만 붙여요. 원고를 숨기지 않아요. 답하지 않았거나 '모르겠어요'면 추가 확인 필요 | `{ "regions": ["서울특별시"], "ageMin": 19, "ageMax": 64, "answers": { "welfare": ["기초생활수급", "차상위"] } }` |
+| `needs` | 이 경로에 필요한 것: `report`(신고), `documents`(서류), `visit`(방문). "신고할 생각 없음"·"서류 없음"·"연락·방문이 어려움"을 고른 사람에게 순서를 뒤로 미루고 안내 문장을 붙여요. 지우지도, 불일치로 만들지도 않아요 | `["report"]` |
+| `institution` · `eligibility` · `access` · `hours` | 기관명 · 신청 조건(문장) · 이용 방법 · 운영시간. 비우면 화면에 "추가 확인 필요" | `"hours": "365일 24시간"` |
+
+**`conditions.answers`** — 질문ID와 선택지 문구를 `src/data/v05/case_questionnaires.json`에서 **그대로** 복사해요(띄어쓰기·마침표까지). 틀리면 빌드 전 검사가 멈춰요.
+쓸 수 있는 예: `welfare`(소득·복지, 생계·교육 장기), `household`(주거·가구), `living`(가정폭력 생활 상황), `relationship`(가해자와의 관계), `who`(돌보는 가족), `recipient_age`(돌보는 가족의 연령대).
+공식 자료에 적힌 조건만 적어요. 추측한 조건을 넣으면 맞는 사람이 '불일치'로 보일 수 있어요.
+
+**연결 검사:** `npm run check:links`(빌드 전 자동) — 없는 목표·선택지 ID, 잘못된 판정이 있으면 멈춰요. 전체 표는 `npm run audit:links` → `reports/link-audit.local.md`(원자료 포함, 저장소에 안 올라감).
 
 **선택지 ID 규칙:** `분야ID.번호`(1부터). 분야ID와 순서는 `src/data/v05/case_questionnaires.json`에 있어요. 단기는 `help_groups`, 장기는 첫 질문 `goals`의 `groups`.
 "아직 어떤 도움이 필요한지 모르겠어요"는 단기 `help.none`, 장기 `goals.none`. 없는 ID를 적으면 빌드 전 검사가 멈춰서 알려 줘요.

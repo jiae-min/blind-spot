@@ -1,0 +1,225 @@
+{
+  "$comment": "선택지 → 해결 목표 → 지원 분야 → 제도(원고) 연결표. 2026-11-07 Claude 제안 초안 — 운영자 검토 대상. 선택지 키: 케이스/기간/선택지ID (선택지ID는 src/data/questionnaire.ts 규칙). 원고는 content/*.json 의 \"goals\" 또는 scripts/link-map.json 으로 목표에 붙인다. 같은 원고를 여러 목표에, 같은 목표를 여러 선택지에 걸 수 있다(다대다). pathways는 '같은 목표를 이루는 다른 경로'의 조사 후보 이름이며 화면에 보이지 않는다 — 공식 확인 전에는 사실로 표시하지 않는다. keywords는 rawdata Programs 이름 검색어(검수 명령에서만 사용).",
+  "fields": {
+    "safety": "안전·보호",
+    "shelter": "긴급 숙소·주거",
+    "basic": "생계·긴급 비용",
+    "medical": "의료·건강",
+    "mental": "심리·회복",
+    "legal": "법률·권리",
+    "privacy": "주소·개인정보 보호",
+    "digital": "디지털 피해",
+    "care": "돌봄·간병",
+    "education": "학업·교육",
+    "work": "일자리·소득",
+    "finance": "금융·채무",
+    "language": "다국어·이주"
+  },
+  "goals": [
+    {
+      "id": "safe-move", "label": "안전한 곳으로 이동하기", "fields": ["safety", "shelter"],
+      "options": ["domestic-violence/short-term/immediate_safety.1", "domestic-violence/short-term/family.1", "sexual-violence/short-term/safety.1"],
+      "pathways": [{ "name": "여성긴급전화 1366", "keywords": ["1366"] }, { "name": "가정폭력 피해자 보호시설", "keywords": ["보호시설"] }]
+    },
+    {
+      "id": "emergency-shelter", "label": "오늘 머물 곳 찾기", "fields": ["shelter"],
+      "options": ["domestic-violence/short-term/immediate_safety.2", "domestic-violence/short-term/family.1", "domestic-violence/short-term/family.2", "sexual-violence/short-term/safety.3", "livelihood-education/short-term/housing.1"],
+      "pathways": [{ "name": "여성긴급전화 1366 긴급피난처", "keywords": ["1366"] }, { "name": "폭력피해자 보호시설", "keywords": ["보호시설"] }, { "name": "긴급복지지원 주거지원", "keywords": ["긴급복지"] }]
+    },
+    {
+      "id": "protection-order", "label": "가해자의 접근·연락 막기", "fields": ["safety", "legal"],
+      "options": ["domestic-violence/short-term/immediate_safety.3", "domestic-violence/short-term/urgent_legal_privacy.1", "domestic-violence/long-term/lasting_safety.1", "domestic-violence/long-term/lasting_safety.2", "domestic-violence/long-term/lasting_safety.3", "sexual-violence/short-term/safety.2", "sexual-violence/long-term/safety.1", "sexual-violence/long-term/safety.2"],
+      "pathways": [{ "name": "임시조치·피해자보호명령", "keywords": ["보호명령", "임시조치"] }, { "name": "신변보호(안전조치)", "keywords": ["신변보호", "안전조치"] }]
+    },
+    {
+      "id": "emergency-living-cost", "label": "당장 필요한 식비·생활비 마련", "fields": ["basic"],
+      "options": ["domestic-violence/short-term/basic_needs.1", "domestic-violence/short-term/basic_needs.2", "sexual-violence/short-term/mental_basic.2", "family-care/short-term/living.1", "family-care/short-term/living.2", "family-care/short-term/living.3", "livelihood-education/short-term/food.1", "livelihood-education/short-term/food.2", "livelihood-education/short-term/medical_bills.2", "livelihood-education/short-term/loss_income.1", "livelihood-education/short-term/loss_income.2"],
+      "pathways": [{ "name": "긴급복지지원(생계지원)", "keywords": ["긴급복지"] }, { "name": "지자체 긴급생계비", "keywords": ["긴급생계"] }, { "name": "푸드뱅크·푸드마켓", "keywords": ["푸드뱅크", "푸드마켓"] }]
+    },
+    {
+      "id": "medical-cost", "label": "의료비 부담 줄이기", "fields": ["medical", "basic"],
+      "options": ["domestic-violence/short-term/basic_needs.3", "sexual-violence/short-term/medical.3", "livelihood-education/short-term/medical_bills.1", "family-care/long-term/cost.2"],
+      "pathways": [{ "name": "긴급복지지원(의료지원)", "keywords": ["긴급복지"] }, { "name": "재난적의료비 지원", "keywords": ["재난적의료비"] }, { "name": "폭력피해자 의료비 지원", "keywords": ["피해자 의료비", "피해자의료비"] }]
+    },
+    {
+      "id": "injury-care", "label": "다친 곳 치료·응급 진료", "fields": ["medical"],
+      "options": ["domestic-violence/short-term/medical_psych.1", "sexual-violence/short-term/medical.1"],
+      "pathways": [{ "name": "해바라기센터 의료지원", "keywords": ["해바라기"] }]
+    },
+    {
+      "id": "sexual-health", "label": "임신·성매개감염 상담과 진료", "fields": ["medical"],
+      "options": ["sexual-violence/short-term/medical.2"],
+      "pathways": [{ "name": "해바라기센터 의료지원", "keywords": ["해바라기"] }]
+    },
+    {
+      "id": "evidence", "label": "증거 채취·보전과 기록 관리", "fields": ["legal", "medical"],
+      "options": ["sexual-violence/short-term/evidence_law.1", "sexual-violence/short-term/evidence_law.3"],
+      "pathways": [{ "name": "해바라기센터 증거채취", "keywords": ["해바라기"] }]
+    },
+    {
+      "id": "no-report-support", "label": "신고하지 않고 먼저 받을 수 있는 지원", "fields": ["safety", "legal"],
+      "options": ["domestic-violence/short-term/urgent_legal_privacy.3", "sexual-violence/short-term/evidence_law.2"],
+      "pathways": []
+    },
+    {
+      "id": "counseling", "label": "심리상담·정서적 지원", "fields": ["mental"],
+      "options": ["domestic-violence/short-term/medical_psych.2", "sexual-violence/short-term/mental_basic.1", "domestic-violence/long-term/recovery.2", "sexual-violence/long-term/recovery.2", "family-care/short-term/break.3", "family-care/long-term/carer_health.2"],
+      "pathways": [{ "name": "정신건강복지센터·심리상담 바우처", "keywords": ["정신건강", "심리지원", "심리상담"] }, { "name": "폭력피해 상담소", "keywords": ["가정폭력 상담소", "성폭력 피해 상담소", "가정폭력상담소", "성폭력상담소"] }]
+    },
+    {
+      "id": "long-recovery", "label": "지속적인 치료와 일상 회복", "fields": ["medical", "mental"],
+      "options": ["domestic-violence/short-term/medical_psych.3", "domestic-violence/long-term/recovery.1", "domestic-violence/long-term/recovery.3", "sexual-violence/long-term/recovery.1", "sexual-violence/long-term/recovery.3"],
+      "pathways": [{ "name": "피해자 치료회복 프로그램", "keywords": ["치료회복"] }]
+    },
+    {
+      "id": "address-privacy", "label": "주소·가족관계 정보 노출 막기", "fields": ["privacy"],
+      "options": ["domestic-violence/short-term/urgent_legal_privacy.2", "domestic-violence/long-term/identity.1", "domestic-violence/long-term/identity.2", "domestic-violence/long-term/identity.3", "domestic-violence/long-term/identity.4", "sexual-violence/long-term/law.3"],
+      "pathways": [{ "name": "주민등록표 열람·교부 제한", "keywords": ["열람 제한", "열람제한", "교부 제한", "교부제한"] }, { "name": "가족관계증명서 교부 제한", "keywords": ["가족관계증명서 교부", "가족관계 교부 제한"] }, { "name": "주민등록번호 변경", "keywords": ["주민등록번호 변경"] }]
+    },
+    {
+      "id": "digital-safety", "label": "휴대전화·계정·위치 정보 안전하게 관리", "fields": ["digital", "privacy"],
+      "options": ["domestic-violence/long-term/identity.5", "sexual-violence/long-term/digital.2", "sexual-violence/long-term/digital.3"],
+      "pathways": []
+    },
+    {
+      "id": "digital-removal", "label": "촬영물 삭제·유포 대응", "fields": ["digital"],
+      "options": ["sexual-violence/short-term/digital.1", "sexual-violence/short-term/digital.2", "sexual-violence/short-term/digital.3", "sexual-violence/long-term/digital.1"],
+      "pathways": [{ "name": "디지털성범죄피해자지원센터 삭제지원", "keywords": ["디지털성범죄"] }]
+    },
+    {
+      "id": "legal-aid", "label": "무료 법률상담·법률구조", "fields": ["legal"],
+      "options": ["domestic-violence/long-term/legal.1", "sexual-violence/long-term/law.1"],
+      "pathways": [{ "name": "대한법률구조공단 법률구조", "keywords": ["법률구조"] }, { "name": "폭력피해자 무료법률지원", "keywords": ["무료법률"] }]
+    },
+    {
+      "id": "family-law", "label": "이혼·양육권·친권·재산 문제", "fields": ["legal"],
+      "options": ["domestic-violence/long-term/legal.2"],
+      "pathways": [{ "name": "법률구조(가사사건)", "keywords": ["법률구조"] }, { "name": "양육비 이행 지원", "keywords": ["양육비"] }]
+    },
+    {
+      "id": "legal-procedure", "label": "수사·재판 등 법적 절차 알아보기", "fields": ["legal"],
+      "options": ["domestic-violence/long-term/legal.3", "sexual-violence/short-term/evidence_law.2", "sexual-violence/long-term/law.2"],
+      "pathways": [{ "name": "피해자 국선변호사", "keywords": ["국선변호"] }, { "name": "무료 소송대리", "keywords": ["소송대리"] }]
+    },
+    {
+      "id": "stable-housing", "label": "안정적으로 살 집 마련", "fields": ["shelter"],
+      "options": ["domestic-violence/long-term/housing.1", "domestic-violence/long-term/housing.2", "domestic-violence/long-term/housing.3", "domestic-violence/long-term/children.2", "sexual-violence/long-term/housing_income.1", "family-care/long-term/stability.1", "livelihood-education/long-term/housing.1", "livelihood-education/long-term/housing.2"],
+      "pathways": [{ "name": "공공임대주택", "keywords": ["공공임대"] }, { "name": "매입임대주택", "keywords": ["매입임대"] }, { "name": "폭력피해자 주거지원", "keywords": ["피해자 주거지원", "피해자 주거"] }]
+    },
+    {
+      "id": "housing-cost", "label": "주거비·임대료 부담 줄이기", "fields": ["shelter", "basic"],
+      "options": ["domestic-violence/long-term/housing.4", "livelihood-education/long-term/housing.2", "livelihood-education/long-term/housing.3", "livelihood-education/short-term/housing.2"],
+      "pathways": [{ "name": "주거급여", "keywords": ["주거급여"] }, { "name": "월세 지원", "keywords": ["월세"] }]
+    },
+    {
+      "id": "livelihood", "label": "꾸준한 생계·복지 지원", "fields": ["basic", "work"],
+      "options": ["domestic-violence/long-term/income_education.1", "sexual-violence/long-term/housing_income.2", "sexual-violence/long-term/housing_income.3", "family-care/long-term/cost.3", "livelihood-education/long-term/income.1", "livelihood-education/long-term/income.3"],
+      "pathways": [{ "name": "국민기초생활보장(생계급여)", "keywords": ["생계급여", "기초생활"] }, { "name": "자활사업", "keywords": ["자활"] }]
+    },
+    {
+      "id": "welfare-services", "label": "의료·돌봄·교육 관련 복지 확인", "fields": ["basic", "care", "education"],
+      "options": ["livelihood-education/long-term/income.2", "family-care/long-term/stability.2"],
+      "pathways": [{ "name": "교육급여", "keywords": ["교육급여"] }, { "name": "의료급여", "keywords": ["의료급여"] }]
+    },
+    {
+      "id": "employment", "label": "취업·직업훈련으로 소득 만들기", "fields": ["work"],
+      "options": ["domestic-violence/long-term/income_education.2", "sexual-violence/long-term/work_school.2", "family-care/long-term/school_work.3", "livelihood-education/long-term/work.1", "livelihood-education/long-term/work.2", "livelihood-education/long-term/work.3", "livelihood-education/long-term/self_support.2"],
+      "pathways": [{ "name": "국민취업지원제도", "keywords": ["국민취업지원"] }, { "name": "국민내일배움카드", "keywords": ["내일배움"] }, { "name": "여성새로일하기센터(새일센터)", "keywords": ["새일"] }, { "name": "고용24 일자리 탐색", "keywords": ["고용24"] }]
+    },
+    {
+      "id": "continue-study", "label": "중단한 학업 이어가기", "fields": ["education"],
+      "options": ["domestic-violence/long-term/income_education.3", "sexual-violence/long-term/work_school.1", "family-care/long-term/school_work.1", "family-care/long-term/school_work.2", "livelihood-education/long-term/education.1", "livelihood-education/short-term/school_fee.2"],
+      "pathways": [{ "name": "학교 밖 청소년 지원(꿈드림)", "keywords": ["학교 밖", "꿈드림"] }, { "name": "검정고시", "keywords": ["검정고시"] }, { "name": "방송통신중·고등학교", "keywords": ["방송통신중학교", "방송통신고등학교"] }]
+    },
+    {
+      "id": "degree", "label": "학위·학력 취득하기", "fields": ["education"],
+      "options": ["livelihood-education/long-term/education.1", "livelihood-education/long-term/education.2", "family-care/long-term/school_work.2"],
+      "pathways": [{ "name": "대학 진학(일반 입학)", "keywords": [] }, { "name": "독학학위제", "keywords": ["독학학위"] }, { "name": "학점은행제", "keywords": ["학점은행"] }, { "name": "검정고시", "keywords": ["검정고시"] }, { "name": "원격대학(방송통신대학·사이버대학)", "keywords": ["방송통신대학", "사이버대학", "원격대학"] }]
+    },
+    {
+      "id": "tuition", "label": "학비·장학금·학자금 마련", "fields": ["education", "basic"],
+      "options": ["livelihood-education/long-term/education.3", "livelihood-education/short-term/school_fee.1", "livelihood-education/short-term/school_fee.2"],
+      "pathways": [{ "name": "국가장학금", "keywords": ["국가장학금"] }, { "name": "학자금 대출·이자 지원", "keywords": ["학자금"] }, { "name": "교육급여", "keywords": ["교육급여"] }]
+    },
+    {
+      "id": "vocational-cert", "label": "자격증·직업교육 비용 지원", "fields": ["education", "work"],
+      "options": ["livelihood-education/long-term/education.4"],
+      "pathways": [{ "name": "국민내일배움카드", "keywords": ["내일배움"] }]
+    },
+    {
+      "id": "debt", "label": "채무·금융·신용 문제 해결", "fields": ["finance"],
+      "options": ["domestic-violence/long-term/income_education.4", "livelihood-education/long-term/finance.1", "livelihood-education/long-term/finance.2"],
+      "pathways": [{ "name": "채무조정(신용회복)", "keywords": ["채무조정"] }, { "name": "개인회생·파산 지원", "keywords": ["개인회생", "파산"] }, { "name": "금융복지상담센터", "keywords": ["금융복지"] }]
+    },
+    {
+      "id": "coerced-finance", "label": "가해자와 연결된 금융·통신 정리", "fields": ["finance", "legal"],
+      "options": ["domestic-violence/long-term/income_education.4", "domestic-violence/long-term/income_education.5"],
+      "pathways": []
+    },
+    {
+      "id": "financial-education", "label": "금융교육·자산 형성", "fields": ["finance"],
+      "options": ["livelihood-education/long-term/finance.3"],
+      "pathways": [{ "name": "자산형성지원(희망저축계좌)", "keywords": ["희망저축", "자산형성"] }]
+    },
+    {
+      "id": "self-reliance", "label": "장기 자립 계획 세우기", "fields": ["work", "basic"],
+      "options": ["livelihood-education/long-term/self_support.1", "livelihood-education/long-term/self_support.2"],
+      "pathways": [{ "name": "자립지원(자활·자립준비청년 등)", "keywords": ["자립지원"] }]
+    },
+    {
+      "id": "school-work-adjust", "label": "학교·직장 생활 조정과 보호 절차", "fields": ["education", "work"],
+      "options": ["sexual-violence/short-term/mental_basic.3", "sexual-violence/long-term/work_school.3", "family-care/short-term/break.1"],
+      "pathways": []
+    },
+    {
+      "id": "child-school", "label": "자녀 전학·교육 문제 해결", "fields": ["education", "privacy"],
+      "options": ["domestic-violence/long-term/children.1"],
+      "pathways": [{ "name": "가정폭력 피해자 자녀 취학 지원", "keywords": ["자녀 취학", "취학 지원", "주소지 외 취학"] }]
+    },
+    {
+      "id": "care-gap-urgent", "label": "갑작스러운 돌봄 공백 메우기", "fields": ["care"],
+      "options": ["domestic-violence/short-term/family.2", "domestic-violence/short-term/family.3", "sexual-violence/short-term/mental_basic.3", "family-care/short-term/care.1", "family-care/short-term/care.2", "family-care/short-term/care.3", "family-care/short-term/break.1", "family-care/short-term/break.2"],
+      "pathways": [{ "name": "긴급돌봄 서비스", "keywords": ["긴급돌봄"] }, { "name": "아이돌봄 서비스", "keywords": ["아이돌봄"] }]
+    },
+    {
+      "id": "long-term-care", "label": "정기적인 돌봄·간병 서비스", "fields": ["care"],
+      "options": ["domestic-violence/long-term/children.3", "sexual-violence/long-term/family.1", "family-care/long-term/long_care.1", "family-care/long-term/long_care.2", "family-care/long-term/long_care.3", "family-care/long-term/carer_health.3"],
+      "pathways": [{ "name": "노인장기요양보험", "keywords": ["장기요양"] }, { "name": "노인맞춤돌봄서비스", "keywords": ["맞춤돌봄"] }, { "name": "장애인활동지원", "keywords": ["장애인활동지원", "장애인 활동지원"] }]
+    },
+    {
+      "id": "care-cost", "label": "간병비·돌봄 비용 줄이기", "fields": ["care", "basic"],
+      "options": ["family-care/short-term/living.3", "family-care/long-term/cost.1"],
+      "pathways": [{ "name": "가족돌봄수당", "keywords": ["가족돌봄수당", "돌봄수당"] }, { "name": "간병비 지원", "keywords": ["간병비"] }]
+    },
+    {
+      "id": "hospital-access", "label": "병원 이동·동행", "fields": ["care", "medical"],
+      "options": ["family-care/short-term/hospital.1", "family-care/short-term/hospital.3", "family-care/long-term/medical.3"],
+      "pathways": [{ "name": "병원 동행 서비스", "keywords": ["병원 동행", "병원동행"] }]
+    },
+    {
+      "id": "care-medical", "label": "가족의 진료·약·재활", "fields": ["care", "medical"],
+      "options": ["family-care/short-term/hospital.2", "family-care/long-term/medical.1", "family-care/long-term/medical.2"],
+      "pathways": [{ "name": "재활·건강관리 서비스", "keywords": ["재활"] }]
+    },
+    {
+      "id": "carer-rest", "label": "돌보는 사람의 휴식·자기돌봄", "fields": ["care", "mental"],
+      "options": ["family-care/short-term/break.2", "family-care/short-term/break.3", "family-care/long-term/carer_health.1", "family-care/long-term/carer_health.2"],
+      "pathways": [{ "name": "가족돌봄청년 자기돌봄비", "keywords": ["자기돌봄", "영케어러", "가족돌봄청년"] }]
+    },
+    {
+      "id": "care-plan", "label": "지속 가능한 돌봄 계획 세우기", "fields": ["care"],
+      "options": ["family-care/long-term/stability.3", "family-care/long-term/carer_health.3"],
+      "pathways": [{ "name": "통합돌봄", "keywords": ["통합돌봄"] }]
+    },
+    {
+      "id": "language-support", "label": "한국어 외 언어로 상담받기", "fields": ["language"],
+      "options": ["domestic-violence/long-term/language.1", "sexual-violence/long-term/family.2"],
+      "pathways": [{ "name": "다누리콜센터·통번역 지원", "keywords": ["통번역", "다누리"] }]
+    },
+    {
+      "id": "migration", "label": "체류·이주 관련 지원", "fields": ["language", "legal"],
+      "options": ["domestic-violence/long-term/language.2", "sexual-violence/long-term/family.3"],
+      "pathways": [{ "name": "이주여성 폭력피해 지원", "keywords": ["이주여성"] }]
+    }
+  ]
+}

@@ -34,8 +34,9 @@ const optionIds = (caseId, horizon) => {
   const d = Q[QKEY[caseId]];
   if (!d) return new Set();
   const out = new Set();
-  const groups = horizon === 'short-term' ? d.short.help_groups : d.long.questions.find((q) => q.groups)?.groups ?? [];
+  const groups = horizon === 'short-term' ? (d.short.help_groups ?? []) : d.long.questions.find((q) => q.groups)?.groups ?? [];
   groups.forEach((g) => g.options.forEach((_, i) => out.add(`${g.id}.${i + 1}`)));
+  if (horizon === 'short-term') (d.short.help_options ?? []).forEach((_, i) => out.add(`help.${i + 1}`));
   out.add(horizon === 'short-term' ? 'help.none' : 'goals.none');
   return out;
 };

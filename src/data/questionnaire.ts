@@ -20,6 +20,10 @@ export interface Question {
   /** 이 지원 분야(묶음 ID) 중 하나를 골랐을 때만 보임 */
   conditionalOn?: string[];
   note?: string;
+  /** help 질문: 묶음 없이 선택지를 바로 보여 줌 (가정폭력 단기 — 원본의 help_options) */
+  flat?: boolean;
+  /** help 질문의 '모르겠어요'를 골랐을 때 보여 줄 안내 문구 */
+  noGoalNote?: string;
   /** 원본에 제목이 없는 질문(가정폭력 단기 '선택적 바로가기')은 화면용 제목을 붙이고 표시 */
   titleAdded?: boolean;
 }
@@ -70,13 +74,18 @@ export function flowFor(c: CaseId, h: Horizon): Flow | null {
     // 원본에 제목이 없음 → 화면용 제목 (운영자 검토 대상)
     questions.push({ id: 'shortcut', title: '지금 어떤 상황에 가까우신가요?', type: 'single', options: opts('shortcut', s.optional_shortcuts), titleAdded: true });
   }
-  questions.push(helpQ('help', '어떤 도움을 받고 싶으신가요?', s.help_groups, s.no_goal_option));
+  if (s.help_options) {
+    // 묶음 없는 단일 목록 — ID는 'help.번호' (원고 helpOptions도 이 ID를 씀)
+    const flat = helpQ('help', '어떤 도움을 받고 싶으신가요?', [{ id: 'help', label: '', options: s.help_options }], s.no_goal_option);
+    questions.push({ ...flat, flat: true, ...(s.no_goal_note ? { noGoalNote: s.no_goal_note } : {}) });
+  } else questions.push(helpQ('help', '어떤 도움을 받고 싶으신가요?', s.help_groups, s.no_goal_option));
   // 가족돌봄·생계교육 단기: 지역은 결과 안에서 필요할 때만 (optional_region_in_results)
   if (s.optional_region_in_results) questions.push({ id: 'region', title: '지역별 기관을 찾고 싶다면 지역을 골라 주세요', type: 'region', options: [], titleAdded: true });
   return { caseKey: key, horizon: h, questions };
 }
 
 /** 위험 응답 → 바로 연결할 긴급번호 (서비스 편집 제안: 즉시 안전·구조 경로 먼저) */
+// 고르는 즉시 다른 페이지로 이동하지 않음 — 같은 자리에 112 안내만 (운영자 결정 2026-11-08, D-047)
 export const DANGER: Record<string, { tel: string; label: string }> = {
   'risk.1': { tel: '112', label: '지금 위험하다면 112에 바로 연락하세요.' },
   'urgent_status.1': { tel: '112', label: '지금 위험하다면 112에 바로 연락하세요.' },
@@ -87,8 +96,3 @@ export const DANGER: Record<string, { tel: string; label: string }> = {
 
 /** 시·도 목록 (원본 장기 '지역' 질문의 선택지에서 '고르지 않을래요'를 뺀 것) */
 export const SIDO: string[] = (defs.domestic_violence.long.questions as RawQ[]).find((q) => q.type === 'region')!.options!.filter((o) => !o.includes('고르지'));
-
-export const HORIZON_NOTE: Record<Horizon, string> = {
-  'short-term': '지금부터 7일 안에 필요한 도움을 먼저 보여 드려요. 식사·머물 곳·긴급 비용처럼 당장 필요한 것은 해결에 더 걸려도 여기에 함께 담았어요. 신청과 심사는 7일보다 오래 걸릴 수 있어요.',
-  'long-term': '7일보다 길게 이어지는 회복과 자립을 위한 도움이에요. 첫 질문에서 지원 분야를 고르면 바로 아래에 관련 정보가 보이고, 이어지는 질문에 답할수록 조건과 순서가 다시 정리돼요.',
-};

@@ -2,7 +2,8 @@
 // CMP-INPUT-01 조건 선택 — 라디오 그룹을 버튼처럼 표시. 서버 전송·URL·저장 없음 (EVT-COND-UPDATE / EVT-SAFE-INPUT).
 // autocomplete="off": 뒤로 가기 시 브라우저가 이전 선택을 복원하지 않도록.
 // 복수 선택(type="checkbox")·배타 항목(exclusive)·칸 수 지정은 v0.5 후속 질문 화면에서 씀 (D-040)
-interface Opt { value: string; label: string; exclusive?: boolean }
+// 보류 답(모르겠어요·답하지 않을래요 등, soft)은 본 격자와 떨어진 점선 상자로 (D-043). softFirst면 본 격자 위에
+interface Opt { value: string; label: string; exclusive?: boolean; soft?: boolean }
 interface Props {
   name: string;
   legend: string;
@@ -17,27 +18,38 @@ interface Props {
   /** 칸 수를 직접 정할 때 (PC / 모바일) */
   cols?: number;
   colsM?: number;
+  /** 보류 답 상자를 본 격자 위에 (지역 하위 단계의 '몰라요') */
+  softFirst?: boolean;
 }
-const { name, legend, options, hint, withUnknown = true, type = 'radio', srLegend = false } = Astro.props;
-const allOpts = withUnknown
-  ? [...options, { value: 'unknown', label: '모르겠어요' }, { value: 'skip', label: '건너뛰기' }]
+const { name, legend, options, hint, withUnknown = true, type = 'radio', srLegend = false, softFirst = false } = Astro.props;
+const allOpts: Opt[] = withUnknown
+  ? [...options, { value: 'unknown', label: '모르겠어요', soft: true }, { value: 'skip', label: '건너뛰기', soft: true }]
   : options;
-const all = allOpts;
+const all = allOpts.filter((o) => !o.soft);
+const soft = allOpts.filter((o) => o.soft);
 // 한 블록 안 격자: PC는 한 줄에 최대 5칸, 모바일은 글자 길이에 따라 2~3칸
 const cols = Astro.props.cols ?? Math.min(5, all.length);
 const colsM = Astro.props.colsM ?? (Math.max(...all.map((o) => o.label.length)) <= 7 ? Math.min(3, all.length) : 2);
+// 본 격자 + 보류 답 줄(점선 상자, 칸 사이 띄움). softFirst면 보류 답 줄이 위
+const blocks = [
+  { list: all, soft: false, style: `--cols:${cols};--cols-m:${colsM}` },
+  { list: soft, soft: true, style: `--cols:${Math.min(2, soft.length)};--cols-m:1` },
+].filter((b) => b.list.length > 0);
+if (softFirst) blocks.reverse();
 ---
 <fieldset class="choice">
   <legend class:list={{ 'sr-only': srLegend }}>{legend}</legend>
   {hint && <p class="hint">{hint}</p>}
-  <div class="opts" style={`--cols:${cols};--cols-m:${colsM}`}>
-    {all.map((o) => (
-      <label class:list={['opt', { 'opt--soft': o.value === 'unknown' || o.value === 'skip' }]}>
-        <input type={type} name={name} value={o.value} autocomplete="off" data-exclusive={'exclusive' in o && o.exclusive ? '' : undefined} />
-        <span>{o.label}</span>
-      </label>
-    ))}
-  </div>
+  {blocks.map((b) => (
+    <div class:list={['opts', { 'opts--soft': b.soft }]} style={b.style}>
+      {b.list.map((o) => (
+        <label class:list={['opt', { 'opt--soft': b.soft }]}>
+          <input type={type} name={name} value={o.value} autocomplete="off" data-exclusive={o.exclusive ? '' : undefined} />
+          <span>{o.label}</span>
+        </label>
+      ))}
+    </div>
+  ))}
 </fieldset>
 
 <style>

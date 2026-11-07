@@ -3,8 +3,8 @@
 // JS가 없으면 모두 펼쳐진 채로 보임. JS가 있으면 처음엔 모두 닫힘, 열고 닫은 상태는 저장하지 않음.
 import CallCard from './CallCard.astro';
 import { CATEGORIES } from '../../data/emergency';
-interface Props { ids?: string[]; prefix?: string }
-const { ids, prefix = '' } = Astro.props;
+interface Props { ids?: string[]; prefix?: string; copy?: boolean }
+const { ids, prefix = '', copy = true } = Astro.props;
 const cats = ids ? ids.map((id) => CATEGORIES.find((c) => c.id === id)!).filter(Boolean) : CATEGORIES;
 const p = prefix ? `${prefix}-` : '';
 ---
@@ -20,7 +20,7 @@ const p = prefix ? `${prefix}-` : '';
       </h3>
       <div class="acc-panel" id={`${p}acc-${cat.id}`} role="region" aria-labelledby={`${p}acc-h-${cat.id}`}>
         <div class="cards">
-          {cat.items.map((s, i) => <CallCard s={s} level="h4" uid={`${p}${cat.id}-${i}`} />)}
+          {cat.items.map((s, i) => <CallCard s={s} level="h4" uid={`${p}${cat.id}-${i}`} copy={copy} />)}
         </div>
       </div>
     </div>

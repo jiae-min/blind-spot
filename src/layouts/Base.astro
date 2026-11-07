@@ -301,7 +301,9 @@ const FOOT_GROUPS = [
   }
 
   /* 빠르게 나가기 안내 띠 (PC·태블릿): 메뉴 바로 아래, 강조색 바탕·가운데 정렬 이벤트 바 (D-029) */
+  /* 메뉴처럼 화면 위에 고정 — 스크롤해도 단축키 안내가 늘 보이게 (D-045). 헤더(56px) 바로 아래 */
   .safety-strip {
+    position: sticky; top: 56px; z-index: 99;
     display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 16px; margin: 0;
     padding: 10px var(--space-6); background: var(--color-accent); color: var(--color-on-strong);
     font-size: 15px; font-weight: 700; text-align: center;

@@ -26,7 +26,7 @@ export interface ContentItem {
   evidence: { title: string; url: string; checkedAt: string | null }[];
   order: number;
   draft: boolean;
-  /** 운영자 결정으로 공개 조건 없이 검수 완료 취급된 원고 (export TREAT_DRAFTS_AS_APPROVED=1, D-044) */
+  /** 운영자 결정으로 공개 조건 없이 검수 완료 취급된 원고 (export TREAT_DRAFTS_AS_APPROVED=1, D-049) */
   approvalOverride?: boolean;
   /** 다른 카드에 합쳐진 원고면 대표 카드 ID (목록에 따로 나오지 않음) */
   mergedInto?: string;

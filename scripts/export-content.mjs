@@ -39,7 +39,7 @@ if (!RAW || !existsSync(RAW)) {
 }
 
 const load = (rel) => JSON.parse(readFileSync(join(RAW, rel), 'utf8'));
-// 운영자 결정(2026-11-07, D-044): TREAT_DRAFTS_AS_APPROVED=1 이면 사용자용 원고 전부를 검수 완료로 취급해 공개본에 넣음.
+// 운영자 결정(2026-11-07, D-049): TREAT_DRAFTS_AS_APPROVED=1 이면 사용자용 원고 전부를 검수 완료로 취급해 공개본에 넣음.
 // 원자료의 승인 기록은 바꾸지 않고, 원고에 approvalOverride: true 표시만 남김 (끄면 원래 공개 조건으로 돌아감)
 const OVERRIDE = env.TREAT_DRAFTS_AS_APPROVED === '1';
 const stageMap = JSON.parse(readFileSync(join(ROOT, 'scripts/stage-map.json'), 'utf8'));

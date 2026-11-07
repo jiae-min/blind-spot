@@ -35,7 +35,7 @@ test('S3 기존 helpOptions 직접 연결도 그대로 동작하고, 다른 기�
 test('S4 모든 지원 분야 선택지에 해결 목표가 하나 이상 있다 (none 제외)', () => {
   const keys = [];
   for (const [c, k] of Object.entries({ [DV]: 'domestic_violence', [SV]: 'sexual_violence', [FC]: 'family_care', [LE]: 'livelihood_education' })) {
-    Q[k].short.help_groups.forEach((g) => g.options.forEach((_, i) => keys.push(optionKey(c, 'short-term', `${g.id}.${i + 1}`))));
+    (Q[k].short.help_options ? [{ id: 'help', options: Q[k].short.help_options }] : Q[k].short.help_groups).forEach((g) => g.options.forEach((_, i) => keys.push(optionKey(c, 'short-term', `${g.id}.${i + 1}`))));
     Q[k].long.questions.find((q) => q.groups).groups.forEach((g) => g.options.forEach((_, i) => keys.push(optionKey(c, 'long-term', `${g.id}.${i + 1}`))));
   }
   const missing = keys.filter((k) => !idx.has(k));

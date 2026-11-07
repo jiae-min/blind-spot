@@ -73,7 +73,7 @@ const tel = (p: string) => `tel:${p.replace(/[^0-9]/g, '')}`;
   .note { margin: var(--space-3) 0 0; }
   ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
   @media (min-width: 768px) { ul { grid-template-columns: 1fr 1fr; } }
-  .center { border: 1px solid var(--color-text); padding: var(--space-4); background: var(--color-canvas); }
+  .center { display: flex; flex-direction: column; border: 1px solid var(--color-text); padding: var(--space-4); background: var(--color-canvas); }
   .center[hidden] { display: none; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
   .tags:not(:has(span:not([hidden]))) { display: none; }
@@ -90,6 +90,6 @@ const tel = (p: string) => `tel:${p.replace(/[^0-9]/g, '')}`;
     background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; text-decoration: none;
   }
   .home { font-weight: 600; }
-  .src { margin: 0; font-size: 13px; color: rgba(51, 56, 35, .75); text-align: right; }
+  .src { margin: auto 0 0; padding-top: var(--space-2); font-size: 13px; color: rgba(51, 56, 35, .75); text-align: right; }
   .none { padding: 10px 12px; background: rgba(123, 158, 137, .12); font-weight: 600; }
 </style>

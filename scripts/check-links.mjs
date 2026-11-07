@@ -43,7 +43,7 @@ const flowGroups = {}; // `${c}/${h}` → Set(groupId)
 for (const [c, k] of Object.entries(QKEY)) {
   const d = Q[k];
   for (const h of HZ) {
-    const groups = h === 'short-term' ? d.short.help_groups : d.long.questions.find((q) => q.groups)?.groups ?? [];
+    const groups = h === 'short-term' ? (d.short.help_options ? [{ id: 'help', label: '도움 목록', options: d.short.help_options }] : d.short.help_groups) : d.long.questions.find((q) => q.groups)?.groups ?? [];
     flowGroups[`${c}/${h}`] = new Set(groups.map((g) => g.id));
     groups.forEach((g) => g.options.forEach((label, i) => {
       const id = `${g.id}.${i + 1}`;

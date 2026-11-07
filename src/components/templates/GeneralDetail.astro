@@ -56,7 +56,7 @@ const LEGACY_CONDITIONS = false;
   </section>
 
   {/* 질문마다 구역 상자 하나 (v0.5 후속 질문) */}
-  <Questionnaire c={c} h={h.id} title={h.id === 'short-term' ? '지금 필요한 도움 찾기' : '앞으로 필요한 도움 찾기'} />
+  <Questionnaire c={c} h={h.id} />
   {LEGACY_CONDITIONS && <div class="sec tick"><Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
     <Region name={`${c.id}-${h.id}-region`} legend="어느 지역에 계신가요?" />
     <Choice name={`${c.id}-${h.id}-c1`} legend="[조건 항목 1]" options={ab(1)} hint="[조건 설명 자리 — 자료 확정 후]" />

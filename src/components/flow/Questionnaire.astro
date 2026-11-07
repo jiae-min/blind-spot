@@ -9,13 +9,13 @@ import Choice from '../wf/Choice.astro';
 import CallCard from '../wf/CallCard.astro';
 import RegionSelect from './RegionSelect.astro';
 import ResultCard from './ResultCard.astro';
-import { DANGER, HORIZON_NOTE, flowFor, type Opt, type Question } from '../../data/questionnaire';
+import { DANGER, flowFor, type Opt, type Question } from '../../data/questionnaire';
 import { contentForOption } from '../../data/content';
 import { CATEGORIES, TOP, telHref } from '../../data/emergency';
-import type { CaseDef, Horizon } from '../../data/cases';
+import { href, type CaseDef, type Horizon } from '../../data/cases';
 
-interface Props { c: CaseDef; h: Horizon; title: string }
-const { c, h, title } = Astro.props;
+interface Props { c: CaseDef; h: Horizon }
+const { c, h } = Astro.props;
 const flow = flowFor(c.id, h)!;
 const uid = `${c.id}-${h}`;
 // 조건 판정·개인화(data/matching.ts)에 넘길 응답 문구: 선택지 ID → 문구 (지원 분야 선택지 제외). 화면 안에서만 씀
@@ -26,36 +26,54 @@ const sidoSource = h === 'short-term' ? 'current' : 'residence';
 // '아직 모르겠어요'를 골랐을 때: 어떤 도움이 맞을지 같이 찾아 주는 곳 (운영자 확정 연락처, data/emergency.ts)
 const guideCall = c.sensitive ? TOP[2] : CATEGORIES.find((x) => x.id === 'welfare')!.items[0];
 const results = (o: Opt) => contentForOption(c.id, h, o.id);
-// 칸 수: 짧은 말은 여러 칸, 문장은 PC 2칸·모바일 1칸
-const cols = (opts: Opt[]) => {
+// 답을 보류하는 선택지(답하지 않을래요·선택하지 않을래요·모르겠어요·무응답 등)는 점선 상자로 따로 (D-043)
+const SOFT = /답하지 않|선택하지 않|고르지 않|무응답|모르겠|^모름$/;
+// 칸 수 (보류 답은 따로 줄을 만들어서 빼고 셈): 짧은 말은 여러 칸, 문장은 PC 2칸·모바일 1칸.
+// 다만 3·9개처럼 홀수이면서 3으로 나뉘면 PC 한 줄에 3칸 — 마지막 줄이 한 칸만 남지 않게 (D-044). 5·7개 등은 그대로
+const cols = (all: Opt[]) => {
+  const opts = all.filter((o) => !SOFT.test(o.label));
   const m = Math.max(...opts.map((o) => o.label.length)), n = opts.length;
-  return m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
+  const base = m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
+  return n % 2 === 1 && n % 3 === 0 ? { ...base, cols: 3 } : base;
 };
-const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive }));
+// '답 모두 지우기'는 늘 보이는 마지막 질문 칸 아래 (조건부 질문은 숨겨질 수 있어서 제외)
+const lastShown = flow.questions.map((q, i) => (q.conditionalOn ? -1 : i)).reduce((a, b) => Math.max(a, b), -1);
+const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive, soft: SOFT.test(o.label) }));
 ---
 <div class="flow sec-group" data-flow data-labels={JSON.stringify(labels)} data-sido-source={sidoSource}>
-  <section class="sec tick">
-    <div class="flow-head">
-      <h2>{title}</h2>
-      <button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button>
-    </div>
-    <p class="desc flow-note">{HORIZON_NOTE[h]} <strong>답한 내용은 저장하거나 어디에도 보내지 않아요.</strong></p>
-  </section>
-
-  {flow.questions.map((q) => (
+  {/* 질문 앞 안내 구역은 두지 않음 — 저장 안 함 안내는 페이지 설명에 (D-046) */}
+  {flow.questions.map((q, qi) => (
     <section class="sec tick q-sec" data-cond={q.conditionalOn?.join(' ')} hidden={!!q.conditionalOn}>
       {q.type === 'region' ? (
         <RegionSelect qid={q.id} title={q.title} current={q.id === 'current_location'} uid={`${uid}-${q.id}`} />
       ) : q.type === 'age' ? (
         <fieldset class="choice" data-q={q.id}>
           <legend>{q.title}</legend>
-          <p class="hint">비워 두어도 괜찮아요. 나이 조건이 있는 지원만 '추가 확인 필요'로 남겨 둬요.</p>
-          <label class="age"><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" aria-label="나이" /><span>세</span></label>
+          <p class="hint">만 나이로 적어 주세요. 나이 조건이 있는 지원은 비워 두면 '추가 확인 필요'로 남겨 둬요.</p>
+          <label class="age"><span>만</span><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" aria-label="만 나이" /><span>세</span></label>
         </fieldset>
       ) : q.type === 'help' ? (
         <fieldset class="choice q-help" data-q={q.id}>
           <legend>{q.title}</legend>
           <p class="hint">여러 개를 골라도 돼요. 고른 항목 바로 아래에 관련 정보가 열려요.</p>
+          {q.flat ? q.groups!.map((g) => (
+            <div class="opts opts--help" style="--cols:1;--cols-m:1;margin-bottom:var(--space-3)">
+              {g.options.map((o) => {
+                    const items = results(o);
+                    return (
+                      <>
+                        <label class="opt"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
+                        <div class="res" data-res data-opt-label={o.label} hidden>
+                          <p class="dup" data-dup hidden></p>
+                          {items.length > 0 ? items.map((it) => <ResultCard item={it} qTitles={qTitles} />) : (
+                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. {h === 'short-term' ? <>아래 <a href="#contacts">긴급 연락처와 도움말</a>의</> : <a href={href('help/')}>긴급 도움 페이지</a>} 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })}
+            </div>
+          )) : (
           <div class="groups">
             {q.groups!.map((g) => (
               <details class="grp" data-group={g.id}>
@@ -69,7 +87,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
                         <div class="res" data-res data-opt-label={o.label} hidden>
                           <p class="dup" data-dup hidden></p>
                           {items.length > 0 ? items.map((it) => <ResultCard item={it} qTitles={qTitles} />) : (
-                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. 아래 <a href="#contacts">긴급 연락처와 도움말</a>의 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
+                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. {h === 'short-term' ? <>아래 <a href="#contacts">긴급 연락처와 도움말</a>의</> : <a href={href('help/')}>긴급 도움 페이지</a>} 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
                           )}
                         </div>
                       </>
@@ -79,13 +97,14 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
               </details>
             ))}
           </div>
-          <div class="opts opts--help" style="--cols:1;--cols-m:1">
+          )}
+          <div class="opts opts--help opts--soft" style="--cols:1;--cols-m:1">
             {q.options.map((o) => (
               <>
                 <label class="opt opt--soft"><input type="checkbox" value={o.id} data-opt data-exclusive autocomplete="off" /><span>{o.label}</span></label>
-                <div class="res res--edge" data-res hidden>
-                  <p class="empty">괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.</p>
-                  <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" />
+                <div class="res" data-res hidden>
+                  <p class="empty">{q.noGoalNote ?? '괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.'}</p>
+                  <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" copy={false} />
                 </div>
               </>
             ))}
@@ -94,18 +113,21 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
       ) : (
         <>
           <Choice name={`${uid}-${q.id}`} legend={q.title}
-                  hint={q.type === 'multi' ? '해당하는 것을 모두 골라 주세요. 건너뛰어도 괜찮아요.' : '건너뛰어도 괜찮아요. 고른 답을 다시 누르면 선택이 풀려요.'}
+                  hint={q.type === 'multi' ? '해당하는 것을 모두 골라 주세요.' : undefined}
                   type={q.type === 'multi' ? 'checkbox' : 'radio'} withUnknown={false}
                   options={asChoice(q)} {...cols(q.options)} />
           {q.options.filter((o) => DANGER[o.id]).map((o) => (
             <p class="danger" data-danger-for={o.id} hidden>
-              <span>{DANGER[o.id].label}</span>
-              <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
-              <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+              <span class="danger-t">{DANGER[o.id].label}</span>
+              <span class="danger-acts">
+                <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
+                <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+              </span>
             </p>
           ))}
         </>
       )}
+      {qi === lastShown && <p class="clear-row"><button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button></p>}
     </section>
   ))}
 
@@ -277,9 +299,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
 </script>
 
 <style>
-  .flow-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
-  .flow-head h2 { margin: 0; }
-  .flow-note { margin: 0; }
+  .clear-row { display: flex; justify-content: flex-end; margin: var(--space-5) 0 0; }
   .clear { min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
   .q-sec[hidden], .timeline[hidden] { display: none; }
   /* 질문 제목 = 구역 제목 크기 (긴급 도움 페이지의 구역 제목과 같게) */
@@ -288,7 +308,9 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
   .flow :global(.choice > legend.sr-only) { margin: -1px; }
   .flow :global(.choice > .hint) { margin: 0 0 var(--space-4); font-size: 15px; }
   /* 위험 응답 → 긴급번호 */
-  .danger { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: var(--space-3) 0 0; padding: 12px 16px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
+  /* 안내 문장은 왼쪽, 전화 버튼·다른 연락처는 오른쪽 (D-044) */
+  .danger-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-left: auto; }
+  .danger { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin: var(--space-3) 0 0; padding: 12px 16px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
   .danger[hidden] { display: none; }
   .danger .more { color: var(--color-on-strong); }
   .danger .call {
@@ -312,7 +334,8 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
   .opts--help :global(.opt span) { justify-content: flex-start; text-align: left; padding: 10px 18px; }
   /* 고른 항목 바로 아래 결과 (격자 한 줄 전체) */
   .res { grid-column: 1 / -1; padding: var(--space-4); border-bottom: 1px solid var(--color-text); background: rgba(123, 158, 137, .08); }
-  .res--edge { border-right: 1px solid var(--color-text); }
+  .opts--help.opts--soft { gap: 0; }
+  .opts--soft .res { border-right: 1px dotted var(--color-soft); border-bottom: 1px dotted var(--color-soft); }
   .res[hidden] { display: none; }
   .empty { margin: 0 0 var(--space-2); font-size: 15px; }
   .dup { margin: 0 0 var(--space-2); font-size: 15px; font-weight: 600; }

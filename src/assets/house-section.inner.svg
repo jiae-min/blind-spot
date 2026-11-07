@@ -72,8 +72,8 @@
 
 <!-- SECTION CUT: merged outline, then fill -->
 <g id="layer-cut">
-<use href="#cut" xlink:href="#cut" class="u-stroke" fill="currentColor"/>
-<use href="#cut" xlink:href="#cut" class="cf" stroke="none"/>
+<use href="#cut" class="u-stroke" fill="currentColor"/>
+<use href="#cut" class="cf" stroke="none"/>
 </g>
 
 <path class="stair-cut" d="M500 866 V842 H515.67 V824 H531.33 V806 H547 V788 H562.67 V770 H578.33 V752 H594 V734 H609.67 V716 H625.33 V698 H641 V680 H656.67 V662 H672.33 V644 H712 V668 H688 V676 L532 866 Z"/>

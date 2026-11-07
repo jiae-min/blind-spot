@@ -8,7 +8,7 @@ export function getStaticPaths() {
 }
 const { c } = Astro.props as { c: CaseDef };
 ---
-<Base title={c.label} sensitive={c.sensitive}>
+<Base title={c.label} sensitive={c.sensitive} quickExit>
   {!c.ready ? <ComingSoon c={c} /> :
   <div class="wrap scene">
     <h1>{c.label}</h1>

@@ -1,21 +1,21 @@
 // 케이스 정의 — 인터페이스 레이블만 담는다. 실제 지원제도 원고(Raw Data)는 포함하지 않는다.
-export type CaseId = 'family-care' | 'domestic-violence' | 'sexual-violence' | 'livelihood-education';
+export type CaseId = 'family-care' | 'domestic-violence' | 'sexual-violence' | 'livelihood-education' | 'reclusive-youth';
 export type Horizon = 'short-term' | 'long-term';
 
 export interface CaseDef {
   id: CaseId;
   label: string;        // 짧은 케이스 이름
   prompt: string;       // 모바일 버튼 문구 (1.4 SCR-M-001)
-  room: string;         // 집 단면도의 방 이름 (DECISIONS D-006)
-  sensitive: boolean;   // 폭력 관련: 저장·추적 금지, 빠르게 나가기 노출
+  sensitive: boolean;   // 폭력 관련: 저장·추적 금지, 탭 제목 중립 (빠르게 나가기는 모든 케이스에 노출)
   ready: boolean;       // MVP 공개 대상. false면 고른 뒤 '현재 제작 중' 화면만 보여 줌 (D-022)
 }
 
 export const CASES: CaseDef[] = [
-  { id: 'family-care', label: '가족돌봄', prompt: '가족을 돌보고 있어요', room: '주방·식당', sensitive: false, ready: false },
-  { id: 'domestic-violence', label: '가정폭력', prompt: '가정폭력으로 도움이 필요해요', room: '안방', sensitive: true, ready: true },
-  { id: 'sexual-violence', label: '성폭력', prompt: '성폭력 피해로 도움이 필요해요', room: '침실', sensitive: true, ready: false },
-  { id: 'livelihood-education', label: '생계·교육', prompt: '생활비와 교육비가 부담돼요', room: '공부방', sensitive: false, ready: false },
+  { id: 'family-care', label: '가족돌봄', prompt: '가족을 돌보고 있어요', sensitive: false, ready: false },
+  { id: 'domestic-violence', label: '가정폭력', prompt: '가정폭력으로 도움이 필요해요', sensitive: true, ready: true },
+  { id: 'sexual-violence', label: '성폭력', prompt: '성폭력 피해로 도움이 필요해요', sensitive: true, ready: false },
+  { id: 'livelihood-education', label: '생계·교육', prompt: '생활비와 교육비가 부담돼요', sensitive: false, ready: false },
+  { id: 'reclusive-youth', label: '은둔 청년', prompt: '오랫동안 집 밖에 나가기 어려웠어요', sensitive: false, ready: false },
 ];
 
 // 아직 공개하지 않은 케이스를 골랐을 때의 문구
@@ -26,13 +26,11 @@ export const HORIZONS: { id: Horizon; title: string; sub: string }[] = [
   { id: 'long-term', title: '미래를 위한 도움', sub: '장기 지원' },
 ];
 
-export const getCase = (id: string) => CASES.find((c) => c.id === id);
-
 // base 경로(BASE_URL)를 붙인 내부 링크 — 배포 경로가 바뀌어도 그대로 동작
 export const href = (path = '') => `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 
-// 상세 페이지 메인 카피 (케이스 × 단기/장기) — 화면 문구, 제도 원고 아님
-export const COPY: Record<CaseId, Record<Horizon, { title: string; lead: string }>> = {
+// 상세 페이지 메인 카피 (케이스 × 단기/장기) — 화면 문구, 제도 원고 아님. 제작 중(ready:false) 케이스는 비워 둬도 됨
+export const COPY: Partial<Record<CaseId, Record<Horizon, { title: string; lead: string }>>> = {
   'family-care': {
     'short-term': { title: '돌봄이 버거운 지금, 함께 방법을 찾아볼게요.', lead: '갑작스러운 돌봄 부담을 덜 수 있도록, 지금 이용할 수 있는 도움부터 살펴보세요.' },
     'long-term': { title: '가족을 돌보면서도, 내 삶을 놓치지 않도록.', lead: '돌봄과 생계, 학업과 미래를 함께 준비할 수 있는 방법을 안내할게요.' },
@@ -53,7 +51,7 @@ export const COPY: Record<CaseId, Record<Horizon, { title: string; lead: string 
 
 // 메인(PC) 줌인 화면의 단기/장기 버튼 안 요약 목록 — 받을 수 있는 도움의 '범주' 초안.
 // 실제 제도명·금액·기관이 아님. 위 COPY 설명에서 뽑았고, 콘텐츠 검수 후 확정 (DECISIONS D-015).
-export const HIGHLIGHTS: Record<CaseId, Record<Horizon, string[]>> = {
+export const HIGHLIGHTS: Partial<Record<CaseId, Record<Horizon, string[]>>> = {
   'family-care': {
     'short-term': ['일시·긴급 돌봄 서비스', '돌봄 비용 부담 덜기', '돌봄 상담·정보 창구', '돌보는 사람의 휴식 지원'],
     'long-term': ['생계 안정 지원', '학업·진로 이어가기', '일과 돌봄 함께하기', '마음 건강 돌보기'],

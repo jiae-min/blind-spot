@@ -12,6 +12,6 @@ const { c, h } = Astro.props as { c: CaseDef; h: (typeof HORIZONS)[number] };
 // 폭력 관련 단기 → SCR-S-001, 그 밖(일반 케이스, 폭력 관련 장기) → SCR-G-001
 const safety = c.sensitive && h.id === 'short-term';
 ---
-<Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive}>
+<Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive} quickExit>
   {!c.ready ? <ComingSoon c={c} h={h} /> : safety ? <SafetyDetail c={c} h={h} /> : <GeneralDetail c={c} h={h} />}
 </Base>

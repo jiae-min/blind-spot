@@ -1,7 +1,7 @@
 ---
 // PC·태블릿 가로 메인 (SCR-D-001): 지상 3층 + 다락 주택 단면도 (DECISIONS D-006, D-010)
 // 도면: src/assets/house-section.inner.svg (사용자 제공 도면에서 메타데이터·뷰어용 호버 레이어만 뺀 것)
-// 활성 방 5곳만 링크. 방 클릭 → 그 방으로 줌인 → 같은 화면에서 케이스 이름 + 단기/장기 버튼
+// 활성 방만 링크. 방 클릭 → 그 방으로 줌인 → 같은 화면에서 케이스 이름 + 단기/장기 버튼
 // 스타일·모션은 heronaiapp.com을 따름: 가는 선 프레임·모서리 +, 주황 스캔 선이 지나가며 도면이 드러나는 진입, 칸 전체를 채우는 호버
 // JS가 없으면 방 링크가 그대로 케이스 페이지로 이동.
 import houseInner from '../assets/house-section.inner.svg?raw';
@@ -9,14 +9,16 @@ import { CASES, COMING_SOON, HIGHLIGHTS, HORIZONS, href, type CaseId } from '../
 
 type RoomDef = {
   id: CaseId | 'help';
-  svg: 'study' | 'bed2' | 'master' | 'kitchen' | 'entrance'; // 도면 속 방 이름 (가구 그룹 data-room)
+  svg: 'study' | 'bed3' | 'bed2' | 'master' | 'kitchen' | 'entrance'; // 도면 속 방 이름 (가구 그룹 data-room)
   room: string;
   tag: string;                                // 작은 고정폭 라벨
   x: number; y: number; w: number; h: number; // 방 영역 (도면 좌표, viewBox 1500×1000)
+  ly?: number;                                // 이름표 기준 높이(도면 y). 없으면 y — 옆 방과 이름표 높이를 맞출 때
 };
 const ROOMS: RoomDef[] = [
   { id: 'livelihood-education', svg: 'study', room: '3층 공부방', tag: '3F · STUDY', x: 168, y: 252, w: 232, h: 176 },
-  { id: 'sexual-violence', svg: 'bed2', room: '2층 침실', tag: '2F · BEDROOM', x: 168, y: 468, w: 232, h: 176 },
+  { id: 'reclusive-youth', svg: 'bed3', room: '3층 작은방', tag: '3F · BEDROOM', x: 724, y: 252, w: 316, h: 176 },
+  { id: 'sexual-violence', svg: 'bed2', room: '2층 침실', tag: '2F · BEDROOM', x: 168, y: 468, w: 232, h: 176, ly: 486 }, // 이름표 높이 = 가정폭력
   { id: 'domestic-violence', svg: 'master', room: '2층 안방', tag: '2F · MASTER', x: 1082, y: 486, w: 250, h: 158 },
   { id: 'family-care', svg: 'kitchen', room: '1층 주방·식당', tag: '1F · KITCHEN', x: 724, y: 684, w: 340, h: 176 },
   { id: 'help', svg: 'entrance', room: '1층 현관', tag: '1F · ENTRANCE', x: 412, y: 668, w: 300, h: 192 },
@@ -47,7 +49,7 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
     {ROOMS.map((r) => (
       <a class:list={['room', { 'room--help': r.id === 'help' }]} href={urlOf(r.id)} data-room={r.id} data-svg={r.svg}
          style={`left:${pct(r.x - VB.x, VB.w)};top:${pct(r.y - VB.y, VB.h)};width:${pct(r.w, VB.w)};height:${pct(r.h, VB.h)}`}>
-        <span class="room-label">{labelOf(r.id)}</span>
+        <span class="room-label" style={r.ly ? `top:calc(var(--label-pad) + ${pct(r.ly - r.y, r.h)})` : undefined}>{labelOf(r.id)}</span>
         <span class="sr-only"> — {r.room}</span>
       </a>
     ))}
@@ -72,7 +74,7 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
               <span class="b-sub mono">{h.sub}</span>
               <strong class="b-title">{h.title}</strong>
               <ul class="b-list">
-                {HIGHLIGHTS[c.id][h.id].map((t) => <li>{t}</li>)}
+                {HIGHLIGHTS[c.id]![h.id].map((t) => <li>{t}</li>)}
               </ul>
               <span class="b-go" aria-hidden="true">자세히 보기 →</span>
             </a>
@@ -114,9 +116,12 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
   .house-svg :global(.w-furn) { stroke-width: 0.7px; }
   .house-svg :global(.w-layer) { stroke-width: 0.56px; }
   .rf { fill: transparent; transition: fill var(--t) var(--ease); }
+  /* 긴급 도움(현관): 평소에도 글자색 40%로 어둡게 — 불 꺼진 방처럼 */
+  .rf[data-room='entrance'] { fill: rgba(51, 56, 35, .4); }
 
   /* 호버: 방 전체를 불투명 강조색으로 */
   .house-stage:has(.room[data-svg='study']:is(:hover, :focus-visible)) .rf[data-room='study'],
+  .house-stage:has(.room[data-svg='bed3']:is(:hover, :focus-visible)) .rf[data-room='bed3'],
   .house-stage:has(.room[data-svg='bed2']:is(:hover, :focus-visible)) .rf[data-room='bed2'],
   .house-stage:has(.room[data-svg='master']:is(:hover, :focus-visible)) .rf[data-room='master'],
   .house-stage:has(.room[data-svg='kitchen']:is(:hover, :focus-visible)) .rf[data-room='kitchen'],
@@ -143,14 +148,11 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
   .room-label {
     position: absolute; top: var(--label-pad); right: var(--label-pad); white-space: nowrap;
     font-size: var(--label-size); font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; padding: .15em .45em;
-    background: var(--color-canvas); color: var(--color-text); border: 0; /* 이름표 상자 선 없음 */
-    transition: background-color var(--t) var(--ease), color var(--t) var(--ease), border-color var(--t) var(--ease);
+    background: var(--color-canvas); color: var(--color-text);
+    transition: background-color var(--t) var(--ease), color var(--t) var(--ease);
   }
-  .room:hover .room-label, .room:focus-visible .room-label {
-    background: transparent; border-color: transparent; color: var(--color-on-strong);
-  }
-  .room--help .room-label { background: var(--color-emergency); border-color: var(--color-emergency); color: var(--color-on-strong); }
-  .room--help:hover .room-label, .room--help:focus-visible .room-label { background: var(--color-emergency); border-color: var(--color-emergency); }
+  .room--help .room-label { background: transparent; } /* 어두운 방 위에 글자만 (상자 없음) */
+  .room:hover .room-label, .room:focus-visible .room-label { background: transparent; color: var(--color-on-strong); }
 
   /* 줌 상태 */
   .rooms { transition: opacity .2s; }
@@ -215,6 +217,7 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
   let current = [...FULL];
   let openId: string | null = null;
   const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ease = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   // ── 이름표 크기: 모든 방 안에 들어가는 가장 큰 h 크기 (h2 32 → h3 24 → h4 18 → h5 16)
   const SIZES = [32, 24, 18, 16];
@@ -239,7 +242,6 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
   if (stage && !reduce()) {
     stage.classList.add('intro');
     const start = performance.now(), dur = 1600;
-    const ease = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / dur);
       if (pctEl) pctEl.textContent = `${Math.round(ease(t) * 100)}%`;
@@ -253,7 +255,6 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
     if (!svg) return;
     if (reduce()) { current = target; svg.setAttribute('viewBox', target.join(' ')); done?.(); return; }
     const from = [...current], start = performance.now(), dur = 700;
-    const ease = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / dur), k = ease(t);
       current = from.map((f, i) => f + (target[i] - f) * k);

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../content/', import.meta.url));
 const DRAFTS = join(ROOT, 'drafts');
-const CASES = ['family-care', 'domestic-violence', 'sexual-violence', 'livelihood-education'];
+const CASES = ['family-care', 'domestic-violence', 'sexual-violence', 'livelihood-education', 'reclusive-youth'];
 const HORIZONS = ['short-term', 'long-term'];
 const KINDS = ['guide', 'faq'];
 const COSTS = ['유료', '무료', '조건부 지원', '확인 필요'];

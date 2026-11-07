@@ -11,7 +11,7 @@ interface Props {
   description?: string;
   /** 폭력 관련 페이지: 탭 제목·공유 미리보기를 중립 문구로, 빠르게 나가기 노출 (D-028) */
   sensitive?: boolean;
-  /** 빠르게 나가기만 필요할 때(홈 등). 기본은 sensitive와 같음 */
+  /** 빠르게 나가기만 필요할 때(홈·모든 케이스 페이지). 기본은 sensitive와 같음 */
   quickExit?: boolean;
 }
 const { title, description = '필요한 도움을 바로 찾을 수 있도록 안내할게요.', sensitive = false, quickExit = sensitive } = Astro.props;
@@ -231,7 +231,8 @@ const FOOT_GROUPS = [
   .nav-sub li + li { border-top: 1px solid var(--line); }
   .nav-sub a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 16px; white-space: nowrap; font-weight: 500; text-decoration: none; }
   .nav-sub .mono { font-size: 11px; }
-  @media (min-width: 1025px) {
+  /* 케이스 5개 + 빠르게 나가기 + 긴급 도움이 한 줄에 들어가는 폭부터 펼친 메뉴, 그 아래는 버거 */
+  @media (min-width: 1200px) {
     .main-nav { display: block; }
     .menu { display: none !important; }
   }
@@ -269,7 +270,6 @@ const FOOT_GROUPS = [
   .foot-cell:first-child { border-top: 0; }
   .foot-cell p { margin: 0; }
   .foot-logo { font-size: 28px; line-height: 1; margin-bottom: var(--space-3) !important; }
-  .foot-note { font-size: 14px; margin-top: var(--space-2) !important; color: rgba(51, 56, 35, .8); }
   .foot-head { margin-bottom: var(--space-3) !important; color: var(--color-accent-text); }
   .foot-cell ul { list-style: none; margin: 0; padding: 0; }
   .foot-link { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 10px; margin: 0 -10px; font-weight: 500; text-decoration: none; }

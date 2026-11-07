@@ -55,7 +55,7 @@ const evidenceById = new Map(evidence.map((e) => [e.record_id, e]));
 const draftById = new Map(drafts.map((d) => [d.record_id, d]));
 
 // ── 규칙
-const CASES = ['family-care', 'domestic-violence', 'sexual-violence', 'livelihood-education'];
+const CASES = ['family-care', 'domestic-violence', 'sexual-violence', 'livelihood-education', 'reclusive-youth'];
 const HORIZONS = ['short-term', 'long-term'];
 const COST = ['무료 지원', '본인부담금 발생', '진료·검사·약제비 발생', '환급 가능 여부 확인 필요 · 조건부 지원', '비용 발생 여부 확인 필요'];
 const KIND = { FAQ: 'faq', FAQ_DRAFT: 'faq', Guide: 'guide', MAIN_CONTENT_DRAFT: 'guide' };

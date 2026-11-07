@@ -21,7 +21,7 @@ import { COPY, HORIZONS, href, type CaseDef } from '../../data/cases';
 interface Props { c: CaseDef; h: (typeof HORIZONS)[number] }
 const { c, h } = Astro.props;
 const other = HORIZONS.find((x) => x.id !== h.id)!;
-const copy = COPY[c.id][h.id];
+const copy = COPY[c.id]![h.id];
 const guides = contentFor(c.id, h.id, 'guide');
 const faqs = contentFor(c.id, h.id, 'faq');
 const hasDrafts = [...guides, ...faqs].some((i) => i.draft);

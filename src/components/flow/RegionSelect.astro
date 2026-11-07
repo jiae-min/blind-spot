@@ -10,7 +10,8 @@ const opt = (list: string[]) => list.map((v) => ({ value: v, label: v }));
 // 하위 단계마다 맨 위에 '몰라요' (점선 상자) — 고르면 그 시·도(또는 시)에 연결해 둔 센터를 모두 보여 줌 (D-043)
 const UNKNOWN = { value: '__unknown', label: '몰라요', soft: true, exclusive: false };
 const withUnknown = (list: string[]) => [UNKNOWN, ...opt(list)];
-const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이에요. ' : ''}고르지 않아도 안내는 그대로 볼 수 있어요. 고른 지역을 다시 누르면 선택이 풀려요. 위치 정보(GPS)는 쓰지 않아요.`;
+// 질문마다 되풀이되던 안내(건너뛰어도 돼요·다시 누르면 풀려요)는 빼고 이 질문에만 해당하는 것만 (D-045)
+const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이에요. ' : ''}위치 정보(GPS)는 쓰지 않아요.`;
 ---
 <div class="region" data-q={qid} data-region-root>
   <Choice name={`${uid}-sido`} legend={title} hint={hint} withUnknown={false} cols={2} colsM={2}

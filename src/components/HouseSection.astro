@@ -291,7 +291,9 @@ const pct = (v: number, total: number) => `${((v / total) * 100).toFixed(3)}%`;
     stage.classList.add('zoomed');
     if (push) history.pushState({ room: id }, '', a.href);
     // 집 영역 맨 위가 헤더 바로 아래에 오도록 (줌 화면 전체가 보이게)
-    const top = stage.getBoundingClientRect().top + window.scrollY - 56;
+    // 고정된 헤더 + (있으면) 빠르게 나가기 안내 띠 바로 아래로
+    const fixed = (document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 56) + (document.querySelector<HTMLElement>('.safety-strip')?.offsetHeight ?? 0);
+    const top = stage.getBoundingClientRect().top + window.scrollY - fixed;
     if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top, behavior: reduce() ? 'auto' : 'smooth' });
     // 폭력 관련 방은 탭 제목을 중립 문구로 (D-028)
     const sens = document.querySelector(`.zoom-panel[data-panel="${id}"]`)?.hasAttribute("data-sensitive");

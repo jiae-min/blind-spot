@@ -1,31 +1,39 @@
 ---
 // CMP-INPUT-01 조건 선택 — 라디오 그룹을 버튼처럼 표시. 서버 전송·URL·저장 없음 (EVT-COND-UPDATE / EVT-SAFE-INPUT).
 // autocomplete="off": 뒤로 가기 시 브라우저가 이전 선택을 복원하지 않도록.
-interface Opt { value: string; label: string }
+// 복수 선택(type="checkbox")·배타 항목(exclusive)·칸 수 지정은 v0.5 후속 질문 화면에서 씀 (D-040)
+interface Opt { value: string; label: string; exclusive?: boolean }
 interface Props {
   name: string;
   legend: string;
+  /** 제목을 화면에서 숨기고 읽기 프로그램에만 (지역의 구·시군 단계) */
+  srLegend?: boolean;
   options: Opt[];
   hint?: string;
   /** '모르겠어요'·'건너뛰기'를 자동으로 덧붙임 */
   withUnknown?: boolean;
+  /** 복수 선택이면 checkbox */
+  type?: 'radio' | 'checkbox';
+  /** 칸 수를 직접 정할 때 (PC / 모바일) */
+  cols?: number;
+  colsM?: number;
 }
-const { name, legend, options, hint, withUnknown = true } = Astro.props;
+const { name, legend, options, hint, withUnknown = true, type = 'radio', srLegend = false } = Astro.props;
 const allOpts = withUnknown
   ? [...options, { value: 'unknown', label: '모르겠어요' }, { value: 'skip', label: '건너뛰기' }]
   : options;
 const all = allOpts;
 // 한 블록 안 격자: PC는 한 줄에 최대 5칸, 모바일은 글자 길이에 따라 2~3칸
-const cols = Math.min(5, all.length);
-const colsM = Math.max(...all.map((o) => o.label.length)) <= 7 ? Math.min(3, all.length) : 2;
+const cols = Astro.props.cols ?? Math.min(5, all.length);
+const colsM = Astro.props.colsM ?? (Math.max(...all.map((o) => o.label.length)) <= 7 ? Math.min(3, all.length) : 2);
 ---
 <fieldset class="choice">
-  <legend>{legend}</legend>
+  <legend class:list={{ 'sr-only': srLegend }}>{legend}</legend>
   {hint && <p class="hint">{hint}</p>}
   <div class="opts" style={`--cols:${cols};--cols-m:${colsM}`}>
     {all.map((o) => (
       <label class:list={['opt', { 'opt--soft': o.value === 'unknown' || o.value === 'skip' }]}>
-        <input type="radio" name={name} value={o.value} autocomplete="off" />
+        <input type={type} name={name} value={o.value} autocomplete="off" data-exclusive={'exclusive' in o && o.exclusive ? '' : undefined} />
         <span>{o.label}</span>
       </label>
     ))}
@@ -36,19 +44,5 @@ const colsM = Math.max(...all.map((o) => o.label.length)) <= 7 ? Math.min(3, all
   .choice { border: 0; padding: 0; margin: 0 0 var(--space-6); min-width: 0; }
   legend { font-weight: 800; font-size: 18px; padding: 0; margin-bottom: var(--space-2); }
   .hint { margin: 0 0 var(--space-3); font-size: 15px; }
-  /* 선택지를 하나의 큰 박스 안 격자로 (칸 사이 가는 선) */
-  .opts { display: grid; grid-template-columns: repeat(var(--cols-m), 1fr); border-top: 1px solid var(--color-text); border-left: 1px solid var(--color-text); }
-  @media (min-width: 600px) { .opts { grid-template-columns: repeat(var(--cols), 1fr); } }
-  .opt { position: relative; display: flex; border-right: 1px solid var(--color-text); border-bottom: 1px solid var(--color-text); }
-  .opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
-  .opt span {
-    flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
-    min-height: 52px; padding: 8px 12px; background: var(--color-canvas); font-weight: 600; line-height: 1.35;
-    transition: background-color var(--t) var(--ease), color var(--t) var(--ease);
-  }
-  .opt--soft span { color: rgba(51, 56, 35, .8); font-weight: 500; }
-  .opt:hover span, .opt input:focus-visible + span { background: var(--color-accent); color: var(--color-on-strong); }
-  .opt input:checked + span { background: var(--color-brand-secondary-strong); color: var(--color-on-strong); }
-  .opt input:checked + span::before { content: '✓ '; white-space: pre; }
-  .opt input:focus-visible + span { outline: 3px solid var(--color-text); outline-offset: -4px; }
+  /* 선택지 격자(.opts/.opt) 모양은 styles/global.css — 질문 화면과 같이 씀 */
 </style>

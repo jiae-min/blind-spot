@@ -1,9 +1,11 @@
 ---
-// 케이스별 단기·장기 질문 (v0.5 후속 변경, D-039) — 질문·선택지는 data/questionnaire.ts (원본 case_questionnaires.json)
+// 케이스별 단기·장기 질문 (v0.5 후속 변경, D-039·D-040) — 질문·선택지는 data/questionnaire.ts (원본 case_questionnaires.json)
+// - 질문마다 구역 상자(.sec .tick) 하나. 선택지는 기존 선택 버튼 격자(Choice, .opts/.opt): 호버 = 강조색, 선택 = 보조색 + ✓
 // - 모든 질문은 건너뛸 수 있음. 답하지 않아도 아래 안내·연락처는 그대로 보임.
 // - '어떤 도움'은 분야별 아코디언 + 복수 선택. 고른 항목 바로 아래에 확인된 원고(content/*.json의 helpOptions)를 보여 줌.
 // - 이후 답(지역·나이·신고 의사·어려움)은 결과 카드의 상태와 순서만 바꾸고, 카드를 지우지 않음.
 // - 답은 이 화면 안에서만 씀: 저장·URL·분석 전송 없음. 뒤로 가기로 돌아오면 비움.
+import Choice from '../wf/Choice.astro';
 import CallCard from '../wf/CallCard.astro';
 import RegionSelect from './RegionSelect.astro';
 import ResultCard from './ResultCard.astro';
@@ -12,116 +14,116 @@ import { contentForOption } from '../../data/content';
 import { CATEGORIES, TOP, telHref } from '../../data/emergency';
 import type { CaseDef, Horizon } from '../../data/cases';
 
-interface Props { c: CaseDef; h: Horizon }
-const { c, h } = Astro.props;
+interface Props { c: CaseDef; h: Horizon; title: string }
+const { c, h, title } = Astro.props;
 const flow = flowFor(c.id, h)!;
 const flags = flagsFor(flow);
 const uid = `${c.id}-${h}`;
 // '아직 모르겠어요'를 골랐을 때: 어떤 도움이 맞을지 같이 찾아 주는 곳 (운영자 확정 연락처, data/emergency.ts)
 const guideCall = c.sensitive ? TOP[2] : CATEGORIES.find((x) => x.id === 'welfare')!.items[0];
 const results = (o: Opt) => contentForOption(c.id, h, o.id);
-const isMulti = (q: Question) => q.type === 'multi';
+// 칸 수: 짧은 말은 여러 칸, 문장은 PC 2칸·모바일 1칸
+const cols = (opts: Opt[]) => {
+  const m = Math.max(...opts.map((o) => o.label.length)), n = opts.length;
+  return m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
+};
+const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive }));
 ---
-<div class="flow" data-flow data-flags={JSON.stringify(flags)}>
-  <p class="flow-note">{HORIZON_NOTE[h]} <strong>답한 내용은 저장하거나 어디에도 보내지 않아요.</strong></p>
+<div class="flow sec-group" data-flow data-flags={JSON.stringify(flags)}>
+  <section class="sec tick">
+    <div class="flow-head">
+      <h2>{title}</h2>
+      <button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button>
+    </div>
+    <p class="desc flow-note">{HORIZON_NOTE[h]} <strong>답한 내용은 저장하거나 어디에도 보내지 않아요.</strong></p>
+  </section>
 
-  {flow.questions.map((q, qi) => (
-    <div class="q-wrap" data-cond={q.conditionalOn?.join(' ')} hidden={!!q.conditionalOn}>
+  {flow.questions.map((q) => (
+    <section class="sec tick q-sec" data-cond={q.conditionalOn?.join(' ')} hidden={!!q.conditionalOn}>
       {q.type === 'region' ? (
         <RegionSelect qid={q.id} title={q.title} current={q.id === 'current_location'} uid={`${uid}-${q.id}`} />
       ) : q.type === 'age' ? (
-        <fieldset class="q" data-q={q.id}>
+        <fieldset class="choice" data-q={q.id}>
           <legend>{q.title}</legend>
           <p class="hint">비워 두어도 괜찮아요. 나이 조건이 있는 지원만 '추가 확인 필요'로 남겨 둬요.</p>
-          <label class="age"><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" /> <span>세</span></label>
+          <label class="age"><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" aria-label="나이" /><span>세</span></label>
         </fieldset>
       ) : q.type === 'help' ? (
-        <fieldset class="q q-help" data-q={q.id}>
+        <fieldset class="choice q-help" data-q={q.id}>
           <legend>{q.title}</legend>
           <p class="hint">여러 개를 골라도 돼요. 고른 항목 바로 아래에 관련 정보가 열려요.</p>
           <div class="groups">
             {q.groups!.map((g) => (
               <details class="grp" data-group={g.id}>
-                <summary><span>{g.label}</span><span class="cnt" data-cnt hidden></span></summary>
-                <ul class="hopts">
+                <summary class="btn-accent"><span class="grp-name">{g.label}</span><span class="cnt" data-cnt hidden></span><span class="grp-state" aria-hidden="true"></span></summary>
+                <div class="opts opts--help" style="--cols:1;--cols-m:1">
                   {g.options.map((o) => {
                     const items = results(o);
                     return (
-                      <li class="hopt">
-                        <label class="ck"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
-                        <div class="res" data-res>
+                      <>
+                        <label class="opt"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
+                        <div class="res" data-res hidden>
                           {items.length > 0 ? items.map((it) => <ResultCard item={it} />) : (
                             <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. 아래 <a href="#contacts">긴급 연락처와 도움말</a>의 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
                           )}
                         </div>
-                      </li>
+                      </>
                     );
                   })}
-                </ul>
+                </div>
               </details>
             ))}
           </div>
-          {q.options.map((o) => (
-            <div class="hopt hopt--none">
-              <label class="ck"><input type="checkbox" value={o.id} data-opt data-exclusive autocomplete="off" /><span>{o.label}</span></label>
-              <div class="res" data-res>
-                <p class="empty">괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.</p>
-                <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" />
-              </div>
-            </div>
-          ))}
+          <div class="opts opts--help" style="--cols:1;--cols-m:1">
+            {q.options.map((o) => (
+              <>
+                <label class="opt opt--soft"><input type="checkbox" value={o.id} data-opt data-exclusive autocomplete="off" /><span>{o.label}</span></label>
+                <div class="res res--edge" data-res hidden>
+                  <p class="empty">괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.</p>
+                  <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" />
+                </div>
+              </>
+            ))}
+          </div>
         </fieldset>
       ) : (
-        <fieldset class="q" data-q={q.id} data-multi={isMulti(q) ? '' : undefined}>
-          <legend>{q.title}{q.titleAdded && <span class="sr-only"> (선택)</span>}</legend>
-          <p class="hint">{isMulti(q) ? '해당하는 것을 모두 골라 주세요. ' : ''}건너뛰어도 괜찮아요.</p>
-          <ul class="opts">
-            {q.options.map((o) => (
-              <li>
-                <label class="ck">
-                  <input type={isMulti(q) ? 'checkbox' : 'radio'} name={`${uid}-${q.id}`} value={o.id} data-exclusive={o.exclusive ? '' : undefined} autocomplete="off" />
-                  <span>{o.label}</span>
-                </label>
-                {DANGER[o.id] && (
-                  <p class="danger" data-danger hidden>
-                    <span>{DANGER[o.id].label}</span>
-                    <a class="call btn-accent" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
-                    <a href="#contacts">다른 연락처 보기 ↓</a>
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </fieldset>
+        <>
+          <Choice name={`${uid}-${q.id}`} legend={q.title}
+                  hint={`${q.type === 'multi' ? '해당하는 것을 모두 골라 주세요. ' : ''}건너뛰어도 괜찮아요.`}
+                  type={q.type === 'multi' ? 'checkbox' : 'radio'} withUnknown={false}
+                  options={asChoice(q)} {...cols(q.options)} />
+          {q.options.filter((o) => DANGER[o.id]).map((o) => (
+            <p class="danger" data-danger-for={o.id} hidden>
+              <span>{DANGER[o.id].label}</span>
+              <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
+              <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+            </p>
+          ))}
+        </>
       )}
-    </div>
+    </section>
   ))}
 
   {/* 고른 도움을 한곳에 모아 순서대로 (선택한 분야 순서 = 원본의 분야 순서) */}
-  <section class="timeline" data-timeline hidden aria-live="polite">
-    <h3>{h === 'short-term' ? '고른 도움, 이 순서로 알아보세요' : '고른 도움, 이렇게 이어 가요'}</h3>
-    <p class="hint">여러 도움은 동시에 알아봐도 괜찮아요. {h === 'short-term' ? '안전과 당장 필요한 것부터 적었어요.' : '안전에 관한 것부터 적었어요.'}</p>
+  <section class="sec tick timeline" data-timeline hidden aria-live="polite">
+    <h2>{h === 'short-term' ? '고른 도움, 이 순서로 알아보세요' : '고른 도움, 이렇게 이어 가요'}</h2>
+    <p class="desc tl-note">여러 도움은 동시에 알아봐도 괜찮아요. {h === 'short-term' ? '안전과 당장 필요한 것부터 적었어요.' : '안전에 관한 것부터 적었어요.'}</p>
     <ol data-tl-list></ol>
   </section>
-
-  <button type="button" class="clear btn-accent" data-flow-clear>답 모두 지우기</button>
 </div>
 
 <script>
   document.querySelectorAll<HTMLElement>('[data-flow]').forEach((flow) => {
     const flags: { noReport?: string; noDocs?: string } = JSON.parse(flow.dataset.flags || '{}');
     const inputs = () => [...flow.querySelectorAll<HTMLInputElement>('input[type=checkbox], input[type=radio]')];
-    const checked = (sel: string) => [...flow.querySelectorAll<HTMLInputElement>(`${sel}:checked`)].map((i) => i.value);
+    const isOn = (v?: string) => !!v && !!flow.querySelector<HTMLInputElement>(`input[value="${v}"]:checked`);
 
     // 배타 선택: '괜찮아요'·'모름' 등을 고르면 같은 질문의 나머지를 끄고, 다른 걸 고르면 배타 항목을 끔
     flow.addEventListener('change', (e) => {
       const t = e.target as HTMLInputElement;
-      if (t.type !== 'checkbox') return;
-      const scope = t.closest('fieldset')!;
-      if (!t.checked) return;
-      scope.querySelectorAll<HTMLInputElement>('input[type=checkbox]').forEach((i) => {
-        if (i === t) return;
-        if (t.hasAttribute('data-exclusive') || i.hasAttribute('data-exclusive')) i.checked = false;
+      if (t.type !== 'checkbox' || !t.checked) return;
+      t.closest('fieldset')!.querySelectorAll<HTMLInputElement>('input[type=checkbox]').forEach((i) => {
+        if (i !== t && (t.hasAttribute('data-exclusive') || i.hasAttribute('data-exclusive'))) i.checked = false;
       });
     }, true);
 
@@ -134,14 +136,12 @@ const isMulti = (q: Question) => q.type === 'multi';
 
     const update = () => {
       // 위험 응답 → 긴급번호 바로 보이기
-      flow.querySelectorAll<HTMLElement>('[data-danger]').forEach((d) => {
-        d.hidden = !(d.closest('li')!.querySelector('input') as HTMLInputElement).checked;
-      });
-      // 고른 항목 바로 아래 결과 열기 (:has를 못 쓰는 브라우저 대비)
-      flow.querySelectorAll<HTMLElement>('.hopt').forEach((o) => o.classList.toggle('on', !!o.querySelector<HTMLInputElement>(':scope > .ck input')?.checked));
-      // 고른 지원 분야
-      const picked = [...flow.querySelectorAll<HTMLInputElement>('[data-opt]:checked')];
-      const groups = new Set(picked.map((i) => i.dataset.group).filter(Boolean));
+      flow.querySelectorAll<HTMLElement>('[data-danger-for]').forEach((d) => (d.hidden = !isOn(d.dataset.dangerFor)));
+      // 고른 항목 바로 아래 결과 열기
+      const picked = [...flow.querySelectorAll<HTMLInputElement>('[data-opt]')];
+      picked.forEach((i) => ((i.closest('.opt')!.nextElementSibling as HTMLElement).hidden = !i.checked));
+      const on = picked.filter((i) => i.checked);
+      const groups = new Set(on.map((i) => i.dataset.group).filter(Boolean));
       flow.querySelectorAll<HTMLElement>('details[data-group]').forEach((d) => {
         const n = d.querySelectorAll('[data-opt]:checked').length;
         const cnt = d.querySelector<HTMLElement>('[data-cnt]')!;
@@ -158,8 +158,7 @@ const isMulti = (q: Question) => q.type === 'multi';
 
       // 결과 카드 상태·순서 재평가 (삭제하지 않음)
       const a = age(), s = sido();
-      const noReport = !!flags.noReport && checked('input[type=radio]').includes(flags.noReport);
-      const noDocs = !!flags.noDocs && checked('input[type=checkbox]').includes(flags.noDocs);
+      const noReport = isOn(flags.noReport), noDocs = isOn(flags.noDocs);
       flow.querySelectorAll<HTMLElement>('[data-res]').forEach((res) => {
         const cards = [...res.querySelectorAll<HTMLElement>('[data-rc]')];
         const scored = cards.map((card) => {
@@ -190,18 +189,18 @@ const isMulti = (q: Question) => q.type === 'multi';
       const tl = flow.querySelector<HTMLElement>('[data-timeline]')!;
       const list = tl.querySelector<HTMLElement>('[data-tl-list]')!;
       list.textContent = '';
-      picked.forEach((i) => {
+      on.forEach((i) => {
         const li = document.createElement('li');
-        const grp = i.closest('details')?.querySelector('summary span')?.textContent;
+        const grp = i.closest('details')?.querySelector('.grp-name')?.textContent;
         if (grp) { const g = document.createElement('span'); g.className = 'tl-g'; g.textContent = grp; li.append(g); }
-        const t = document.createElement('span'); t.textContent = i.parentElement!.querySelector('span')!.textContent!; li.append(t);
-        const n = i.closest('.hopt')!.querySelectorAll('[data-rc]').length;
+        const t = document.createElement('span'); t.className = 'tl-t'; t.textContent = i.parentElement!.querySelector('span')!.textContent!; li.append(t);
+        const n = (i.closest('.opt')!.nextElementSibling as HTMLElement).querySelectorAll('[data-rc]').length;
         const m = document.createElement('span'); m.className = 'tl-m';
         m.textContent = n ? `확인된 안내 ${n}개` : '상담기관에 확인';
         li.append(m);
         list.append(li);
       });
-      tl.hidden = picked.length === 0;
+      tl.hidden = on.length === 0;
     };
 
     flow.addEventListener('change', update);
@@ -222,48 +221,54 @@ const isMulti = (q: Question) => q.type === 'multi';
 </script>
 
 <style>
-  .flow { display: flex; flex-direction: column; }
-  .flow-note { margin: 0 0 var(--space-5); padding: 10px 14px; border-left: 4px solid var(--color-brand-secondary-strong); background: rgba(123, 158, 137, .1); font-size: 15px; }
-  .q-wrap[hidden] { display: none; }
-  .flow :global(.q) { border: 0; padding: 0; margin: 0 0 var(--space-6); min-width: 0; }
-  .flow :global(.q legend) { font-weight: 800; font-size: 18px; padding: 0; margin-bottom: var(--space-2); }
-  .flow :global(.hint) { margin: 0 0 var(--space-3); font-size: 15px; }
-  .opts, .hopts { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-text); }
-  .opts li + li, .hopts li + li { border-top: 1px solid var(--line); }
-  .ck { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; cursor: pointer; font-weight: 600; line-height: 1.4; transition: background-color var(--t) var(--ease), color var(--t) var(--ease); }
-  .ck input { width: 20px; height: 20px; flex: none; margin: 0; accent-color: var(--color-brand-secondary-strong); }
-  .ck:hover { background: rgba(243, 91, 4, .08); }
-  .ck:has(input:checked) { background: rgba(89, 118, 95, .12); }
-  .danger { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0; padding: 10px 14px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
+  .flow-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .flow-head h2 { margin: 0; }
+  .flow-note { margin: 0; }
+  .clear { min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
+  .q-sec[hidden], .timeline[hidden] { display: none; }
+  /* 질문 제목 = 구역 제목 크기 (긴급 도움 페이지의 구역 제목과 같게) */
+  .flow :global(.choice) { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .flow :global(.choice > legend) { font-size: 24px; line-height: 1.35; font-weight: 800; padding: 0; margin-bottom: var(--space-3); }
+  .flow :global(.choice > legend.sr-only) { margin: -1px; }
+  .flow :global(.choice > .hint) { margin: 0 0 var(--space-4); font-size: 15px; }
+  /* 위험 응답 → 긴급번호 */
+  .danger { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: var(--space-3) 0 0; padding: 12px 16px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
   .danger[hidden] { display: none; }
-  .danger a:not(.call) { color: var(--color-on-strong); }
-  .call {
+  .danger .more { color: var(--color-on-strong); }
+  .danger .call {
     display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; background: var(--color-canvas); color: var(--color-text);
-    border: 1px solid var(--color-canvas); font-weight: 800; text-decoration: none;
+    font-weight: 800; text-decoration: none;
   }
-  /* 지원 분야 아코디언 */
-  .groups { display: grid; gap: 8px; margin-bottom: 8px; }
-  .grp { border: 1px solid var(--color-text); }
-  .grp > summary { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 16px; cursor: pointer; font-weight: 800; font-size: 17px; list-style: none; }
+  /* 지원 분야 아코디언 (상황별 연락처 아코디언과 같은 모양) */
+  .groups { border: 1px solid var(--color-text); margin-bottom: var(--space-3); }
+  .grp + .grp { border-top: 1px solid var(--color-text); }
+  .grp > summary { display: flex; align-items: center; gap: 8px 16px; min-height: 60px; padding: 10px 18px; cursor: pointer; list-style: none; }
   .grp > summary::-webkit-details-marker { display: none; }
-  .grp > summary::after { content: '+'; margin-left: auto; font-family: var(--font-mono); font-size: 20px; }
-  .grp[open] > summary::after { content: '−'; }
-  .grp > summary:hover { background: rgba(243, 91, 4, .08); }
-  .cnt { font-size: 13px; font-weight: 700; padding: 0 8px; background: var(--color-brand-secondary-strong); color: var(--color-on-strong); }
+  .grp-name { flex: 1 1 auto; font-size: 18px; font-weight: 700; }
+  .grp-state { font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .grp-state::after { content: '펼치기 +'; }
+  .grp[open] .grp-state::after { content: '접기 −'; }
+  .cnt { font-size: 13px; font-weight: 700; padding: 0 8px; border: 1px solid currentColor; }
   .cnt[hidden] { display: none; }
-  .grp .hopts { border: 0; border-top: 1px solid var(--line); }
-  .hopt--none { border: 1px dashed var(--color-text); }
-  /* 고른 항목 바로 아래 결과 */
-  .res { display: none; padding: var(--space-3) var(--space-4) var(--space-4); background: rgba(123, 158, 137, .08); }
-  .hopt.on > .res, .hopt:has(> .ck input:checked) > .res { display: block; }
+  .grp .opts { border-left: 0; border-top: 1px solid var(--color-text); }
+  .grp .opts :global(.opt) { border-right: 0; }
+  /* 문장 선택지는 왼쪽 정렬 */
+  .opts--help :global(.opt span) { justify-content: flex-start; text-align: left; padding: 10px 18px; }
+  /* 고른 항목 바로 아래 결과 (격자 한 줄 전체) */
+  .res { grid-column: 1 / -1; padding: var(--space-4); border-bottom: 1px solid var(--color-text); background: rgba(123, 158, 137, .08); }
+  .res--edge { border-right: 1px solid var(--color-text); }
+  .res[hidden] { display: none; }
   .empty { margin: 0 0 var(--space-2); font-size: 15px; }
   .age { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
-  .age input { width: 7em; min-height: 48px; padding: 0 12px; font: inherit; font-size: 17px; border: 1px solid var(--color-text); border-radius: 0; background: #fff; }
-  .timeline { margin: 0 0 var(--space-5); padding: var(--space-4); border: 1px solid var(--color-text); background: #fff; }
-  .timeline[hidden] { display: none; }
-  .timeline h3 { font-size: 20px; margin: 0 0 var(--space-2); }
-  .timeline ol { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; }
+  .age input { width: 7em; min-height: 52px; padding: 0 12px; font: inherit; font-size: 17px; border: 1px solid var(--color-text); border-radius: 0; background: var(--color-canvas); color: inherit; }
+  .age input:hover { border-color: var(--color-accent); }
+  .age input:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 0; }
+  .tl-note { margin: 0 0 var(--space-4); }
+  .timeline ol { list-style: none; counter-reset: t; margin: 0; padding: 0; border: 1px solid var(--line); }
+  .timeline ol :global(li) { counter-increment: t; position: relative; padding: 12px 16px 12px 52px; }
+  .timeline ol :global(li + li) { border-top: 1px dashed var(--line); }
+  .timeline ol :global(li)::before { content: counter(t); position: absolute; left: 16px; top: 12px; width: 24px; height: 24px; display: grid; place-items: center; background: var(--color-brand-secondary-strong); color: var(--color-on-strong); font-size: 13px; font-weight: 800; }
   .timeline :global(.tl-g) { display: block; font-size: 13px; font-weight: 700; color: var(--color-brand-secondary-strong); }
+  .timeline :global(.tl-t) { display: block; font-weight: 700; }
   .timeline :global(.tl-m) { display: block; font-size: 13px; }
-  .clear { align-self: flex-end; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; cursor: pointer; color: inherit; }
 </style>

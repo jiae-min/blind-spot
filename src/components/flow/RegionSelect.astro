@@ -1,100 +1,64 @@
 ---
-// 지역 고르기 (v0.5 후속): 시·도 → (서울) 구 / (경기) 시·군 → 일반구가 있는 시는 구
-// GPS·주소 입력 없음. 고른 값은 이 화면에서만 쓰고 저장·URL·전송 없음.
+// 지역 고르기 (v0.5 후속, D-040): 서울·경기 두 버튼 → 바로 아래에 구(서울) / 시·군(경기) 버튼 → 일반구가 있는 시는 구 버튼
+// 기존 지역 질문(wf/Region.astro)과 같은 방식·모양. GPS·주소 입력 없음. 고른 값은 이 화면에서만 쓰고 저장·URL·전송 없음.
 // 고를 때마다 'bs-region' 이벤트(detail: { sido, key — 연결표 키, 덜 골랐으면 '' })를 보냄 → 센터 연결·조건 확인이 받음
-import { SIDO } from '../../data/questionnaire';
+import Choice from '../wf/Choice.astro';
 import { SEOUL, GYEONGGI } from '../../data/centers';
 interface Props { qid: string; title: string; current?: boolean; uid: string }
 const { qid, title, current = false, uid } = Astro.props;
-const gg = Object.fromEntries(GYEONGGI.map((g) => [g.city, g.districts]));
+const opt = (list: string[]) => list.map((v) => ({ value: v, label: v }));
+const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이에요. ' : ''}고르지 않아도 안내는 그대로 볼 수 있어요. 위치 정보(GPS)는 쓰지 않아요.`;
 ---
-<fieldset class="q q-region" data-q={qid} data-region-root data-gg={JSON.stringify(gg)}>
-  <legend>{title}</legend>
-  <p class="hint">
-    {current ? '주민등록 주소가 아니라 지금 계신 곳이에요. ' : ''}고르지 않아도 안내는 그대로 볼 수 있어요. 위치 정보(GPS)는 쓰지 않아요.
-  </p>
-  <div class="sel-row">
-    <label class="sel">
-      <span>시·도</span>
-      <select data-sido autocomplete="off" id={`${uid}-sido`}>
-        <option value="">고르지 않을래요</option>
-        {SIDO.map((s) => <option value={s}>{s}</option>)}
-      </select>
-    </label>
-    <label class="sel" data-lv="seoul" hidden>
-      <span>구</span>
-      <select data-seoul autocomplete="off">
-        <option value="">구 고르기</option>
-        {SEOUL.map((g) => <option value={g}>{g}</option>)}
-      </select>
-    </label>
-    <label class="sel" data-lv="gg" hidden>
-      <span>시·군</span>
-      <select data-gg-city autocomplete="off">
-        <option value="">시·군 고르기</option>
-        {GYEONGGI.map((g) => <option value={g.city}>{g.city}</option>)}
-      </select>
-    </label>
-    <label class="sel" data-lv="gg-dist" hidden>
-      <span>구</span>
-      <select data-gg-dist autocomplete="off"><option value="">구 고르기</option></select>
-    </label>
+<div class="region" data-q={qid} data-region-root>
+  <Choice name={`${uid}-sido`} legend={title} hint={hint} withUnknown={false} cols={2} colsM={2}
+          options={[{ value: '서울특별시', label: '서울' }, { value: '경기도', label: '경기' }]} />
+  <div class="sub" data-sub="서울특별시" hidden>
+    <Choice name={`${uid}-seoul`} legend="서울 어느 구에 계신가요?" srLegend withUnknown={false} options={opt(SEOUL)} />
   </div>
-  <p class="other" data-other hidden>이 지역의 시·군·구 목록과 기관 연결 정보는 아직 준비 중이에요. 시·도까지만 반영할게요.</p>
-</fieldset>
+  <div class="sub" data-sub="경기도" hidden>
+    <Choice name={`${uid}-gg`} legend="경기도 어느 시·군에 계신가요?" srLegend withUnknown={false} options={opt(GYEONGGI.map((g) => g.city))} />
+  </div>
+  {GYEONGGI.filter((g) => g.districts.length).map((g) => (
+    <div class="sub sub--dist" data-dist={g.city} hidden>
+      <Choice name={`${uid}-gg-${g.city}`} legend={`${g.city} 어느 구에 계신가요?`} srLegend withUnknown={false} options={opt(g.districts)} cols={Math.min(4, g.districts.length)} />
+    </div>
+  ))}
+</div>
 
 <script>
   document.querySelectorAll<HTMLElement>('[data-region-root]').forEach((root) => {
-    const gg: Record<string, string[]> = JSON.parse(root.dataset.gg!);
-    const sido = root.querySelector<HTMLSelectElement>('[data-sido]')!;
-    const seoul = root.querySelector<HTMLSelectElement>('[data-seoul]')!;
-    const city = root.querySelector<HTMLSelectElement>('[data-gg-city]')!;
-    const dist = root.querySelector<HTMLSelectElement>('[data-gg-dist]')!;
-    const lv = (n: string) => root.querySelector<HTMLElement>(`[data-lv="${n}"]`)!;
-    const other = root.querySelector<HTMLElement>('[data-other]')!;
-    const emit = () => {
-      const s = sido.value;
+    const val = (pre: string) => root.querySelector<HTMLInputElement>(`input[name="${pre}"]:checked`)?.value ?? '';
+    const name = (sel: string) => root.querySelector<HTMLInputElement>(`${sel} input`)!.name;
+    const sidoName = name('.choice'), seoulName = name('[data-sub="서울특별시"]'), ggName = name('[data-sub="경기도"]');
+    const blocks = [...root.querySelectorAll<HTMLElement>('[data-sub], [data-dist]')];
+    const clear = (b: HTMLElement) => b.querySelectorAll<HTMLInputElement>('input').forEach((i) => (i.checked = false));
+    const sync = () => {
+      const s = val(sidoName), city = s === '경기도' ? val(ggName) : '';
+      blocks.forEach((b) => {
+        const show = b.dataset.sub ? b.dataset.sub === s : b.dataset.dist === city;
+        if (!show) clear(b);
+        b.hidden = !show;
+      });
       let key = '';
-      if (s === '서울특별시' && seoul.value) key = `서울특별시/서울특별시/${seoul.value}`;
-      if (s === '경기도' && city.value) {
-        const ds = gg[city.value] ?? [];
-        key = ds.length ? (dist.value ? `경기도/${city.value}/${dist.value}` : '') : `경기도/${city.value}`;
+      if (s === '서울특별시' && val(seoulName)) key = `서울특별시/서울특별시/${val(seoulName)}`;
+      if (s === '경기도' && city) {
+        const dist = root.querySelector<HTMLElement>(`[data-dist="${city}"]`);
+        const d = dist ? dist.querySelector<HTMLInputElement>('input:checked')?.value : '';
+        key = dist ? (d ? `경기도/${city}/${d}` : '') : `경기도/${city}`;
       }
       root.dataset.pickedSido = s;
       root.dataset.pickedKey = key;
       root.dispatchEvent(new CustomEvent('bs-region', { bubbles: true, detail: { sido: s, key } }));
     };
-    const fillDist = () => {
-      const ds = gg[city.value] ?? [];
-      dist.length = 1;
-      ds.forEach((d) => dist.add(new Option(d, d)));
-      dist.value = '';
-      lv('gg-dist').hidden = ds.length === 0;
-    };
-    sido.addEventListener('change', () => {
-      seoul.value = ''; city.value = ''; dist.length = 1;
-      lv('seoul').hidden = sido.value !== '서울특별시';
-      lv('gg').hidden = sido.value !== '경기도';
-      lv('gg-dist').hidden = true;
-      other.hidden = !sido.value || sido.value === '서울특별시' || sido.value === '경기도';
-      emit();
-    });
-    seoul.addEventListener('change', emit);
-    city.addEventListener('change', () => { fillDist(); emit(); });
-    dist.addEventListener('change', emit);
-    // 선택 지우기·뒤로 가기 복원
-    root.addEventListener('bs-reset', () => { sido.value = ''; sido.dispatchEvent(new Event('change')); });
+    root.addEventListener('change', sync);
+    root.addEventListener('bs-reset', () => { clear(root); sync(); });
     window.addEventListener('pageshow', (e) => { if (e.persisted) root.dispatchEvent(new Event('bs-reset')); });
   });
 </script>
 
 <style>
-  .sel-row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-  .sel { display: flex; flex-direction: column; gap: 4px; font-size: 15px; font-weight: 700; min-width: 160px; flex: 1 1 160px; max-width: 260px; }
-  .sel[hidden] { display: none; }
-  .sel select {
-    min-height: 48px; padding: 0 12px; font: inherit; font-size: 17px; font-weight: 500;
-    border: 1px solid var(--color-text); border-radius: 0; background: #fff; color: inherit;
-  }
-  .other { margin: var(--space-3) 0 0; font-size: 15px; }
+  /* 하위 단계: 바로 아래 옅은 바탕에 버튼만 (기존 지역 질문과 같은 모양) */
+  .region :global(.choice) { margin-bottom: 0; }
+  .sub { margin-top: var(--space-3); padding: var(--space-4); background: rgba(123, 158, 137, .08); }
+  .sub[hidden] { display: none; }
 </style>

@@ -55,15 +55,13 @@ const LEGACY_CONDITIONS = false;
   </Slot>
   </section>
 
-  <div class="sec tick">
-  <h2 class="flow-h">{h.id === 'short-term' ? '지금 필요한 도움 찾기' : '앞으로 필요한 도움 찾기'}</h2>
-  <Questionnaire c={c} h={h.id} />
-  {LEGACY_CONDITIONS && <Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
+  {/* 질문마다 구역 상자 하나 (v0.5 후속 질문) */}
+  <Questionnaire c={c} h={h.id} title={h.id === 'short-term' ? '지금 필요한 도움 찾기' : '앞으로 필요한 도움 찾기'} />
+  {LEGACY_CONDITIONS && <div class="sec tick"><Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
     <Region name={`${c.id}-${h.id}-region`} legend="어느 지역에 계신가요?" />
     <Choice name={`${c.id}-${h.id}-c1`} legend="[조건 항목 1]" options={ab(1)} hint="[조건 설명 자리 — 자료 확정 후]" />
     <Choice name={`${c.id}-${h.id}-c2`} legend="[조건 항목 2]" options={ab(2)} />
-  </Conditions>}
-  </div>
+  </Conditions></div>}
 
   <section class="sec tick">
     <h2>확인된 제도·방법</h2>
@@ -130,7 +128,6 @@ const LEGACY_CONDITIONS = false;
   .state--draft { border-left-color: var(--color-accent-text) !important; }
   .state { border-left: 4px solid var(--color-text); padding: 12px 16px; margin: 0 0 var(--space-5); background: #fff; }
   .page :global(.conds) { margin: 0; }
-  .flow-h { margin-bottom: var(--space-4); }
   .sec > h2 { margin-bottom: var(--space-5); }
   .sec .cards { margin-bottom: var(--space-4); }
   .first { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; font-weight: 700; }

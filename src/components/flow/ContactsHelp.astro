@@ -37,49 +37,63 @@ const TELL = [
 ];
 const p = `${c.id}-${horizon}`;
 ---
-<section id="contacts" class="sec tick ch" tabindex="-1" data-ch>
-  <div class="ch-head">
-    <h2>긴급 연락처와 도움말</h2>
-    <button type="button" class="ch-toggle btn-accent" aria-expanded="true" aria-controls={`${p}-ch-body`} data-ch-toggle>이 구역 접기</button>
-  </div>
-  <div class="ch-body" id={`${p}-ch-body`}>
-    <p class="desc ch-lead">지금 바로 연락할 수 있는 곳이에요. 신고하지 않아도 상담부터 받을 수 있는 곳도 있어요.</p>
-    <EmergencyTop prefix={`${p}-top`} />
+<div class="sec-group ch" data-ch>
+  <section id="contacts" class="sec tick ch-top" tabindex="-1">
+    <div class="ch-head">
+      <h2>긴급 연락처와 도움말</h2>
+      <button type="button" class="ch-toggle btn-accent" aria-expanded="true" aria-controls={`${p}-ch-body`} data-ch-toggle>이 구역 접기</button>
+    </div>
+    <div data-ch-part>
+      <p class="desc ch-lead">지금 바로 연락할 수 있는 곳이에요. 신고하지 않아도 상담부터 받을 수 있는 곳도 있어요.</p>
+      <EmergencyTop prefix={`${p}-top`} />
+    </div>
+  </section>
 
+  {/* 긴급 도움 페이지처럼 주제마다 구역 상자 하나 */}
+  <div class="sec-group" id={`${p}-ch-body`} data-ch-part>
     {violence && (
-      <>
-        <h3 class="ch-h">지역에 연결해 둔 해바라기센터</h3>
+      <section class="sec tick">
+        <h2>지역에 연결해 둔 해바라기센터</h2>
         <CenterMatch child={c.id === 'sexual-violence'} />
-      </>
+      </section>
     )}
 
-    <h3 class="ch-h">상황별 연락처</h3>
-    <CallCategories ids={CATS[c.id]} prefix={p} />
-    <p class="more"><a href={href('help/#contacts')}>모든 상황별 연락처 보기 →</a></p>
+    <section class="sec tick">
+      <h2>상황별 연락처</h2>
+      <p class="desc sub">필요한 분류를 눌러 펼쳐 보세요. 여러 개를 함께 열 수 있어요.</p>
+      <CallCategories ids={CATS[c.id]} prefix={p} />
+      <p class="more"><a href={href('help/#contacts')}>모든 상황별 연락처 보기 →</a></p>
+    </section>
 
-    <h3 class="ch-h">전화할 때 이렇게 말해 보세요</h3>
-    <p class="sub">거는 곳을 고르고, 주황색 괄호 부분만 내 상황에 맞게 바꿔 말해 보세요. 필요 없는 부분은 빼도 괜찮아요.</p>
-    <ContactScript agencies={AGENCIES[c.id]} />
+    <section class="sec tick">
+      <h2>전화할 때 이렇게 말해 보세요</h2>
+      <p class="desc sub">거는 곳을 고르고, 주황색 괄호 부분만 내 상황에 맞게 바꿔 말해 보세요. 필요 없는 부분은 빼도 괜찮아요.</p>
+      <ContactScript agencies={AGENCIES[c.id]} />
+    </section>
 
-    <h3 class="ch-h">전화할 때 전하면 좋은 내용</h3>
-    <p class="sub">말하기 어려운 건 빼도 괜찮아요. 상담원이 차례로 물어봐 줄 거예요.</p>
-    <dl class="tell">
-      {TELL.map((t) => <div><dt>{t.k}</dt><dd>{t.v}</dd></div>)}
-    </dl>
+    <section class="sec tick">
+      <h2>전화할 때 전하면 좋은 내용</h2>
+      <p class="desc sub">말하기 어려운 건 빼도 괜찮아요. 상담원이 차례로 물어봐 줄 거예요.</p>
+      <dl class="tell">
+        {TELL.map((t) => <div><dt>{t.k}</dt><dd>{t.v}</dd></div>)}
+      </dl>
+    </section>
 
-    <h3 class="ch-h">연결이 안 되거나 전화가 어려울 때</h3>
-    <Alternatives />
+    <section class="sec tick">
+      <h2>연결이 안 되거나 전화가 어려울 때</h2>
+      <Alternatives />
+    </section>
   </div>
-</section>
+</div>
 
 <script>
   document.querySelectorAll<HTMLElement>('[data-ch]').forEach((sec) => {
     const btn = sec.querySelector<HTMLButtonElement>('[data-ch-toggle]')!;
-    const body = document.getElementById(btn.getAttribute('aria-controls')!)!;
+    const parts = [...sec.querySelectorAll<HTMLElement>('[data-ch-part]')];
     btn.addEventListener('click', () => {
       const open = btn.getAttribute('aria-expanded') !== 'true';
       btn.setAttribute('aria-expanded', String(open));
-      body.hidden = !open;
+      parts.forEach((x) => (x.hidden = !open));
       btn.textContent = open ? '이 구역 접기' : '이 구역 펼치기';
     });
     // '긴급 연락처 바로 보기'로 오면 접혀 있어도 펼침
@@ -90,19 +104,19 @@ const p = `${c.id}-${horizon}`;
 </script>
 
 <style>
-  .ch { scroll-margin-top: 76px; }
-  .ch:focus { outline: none; }
+  .ch-top { scroll-margin-top: 76px; }
+  .ch-top:focus { outline: none; }
   .ch-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
   .ch-head h2 { margin: 0; }
   .ch-toggle { min-height: 44px; padding: 0 16px; border: 1px solid var(--color-text); background: none; font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
-  .ch-body[hidden] { display: none; }
-  .ch-lead { margin: 0 0 var(--space-4); }
-  .ch-h { font-size: 20px; margin: var(--space-7) 0 var(--space-3); }
-  .sub { margin: 0 0 var(--space-3); font-size: 15px; }
+  [data-ch-part][hidden] { display: none; }
+  .ch-lead { margin: 0 0 var(--space-5); }
+  .ch .sec > h2 { margin-bottom: var(--space-3); }
+  .sub { margin: 0 0 var(--space-4); }
   .more { margin: var(--space-3) 0 0; font-weight: 700; }
-  .tell { display: grid; gap: 0; margin: 0; border: 1px solid var(--line); }
-  .tell div { display: grid; grid-template-columns: minmax(8em, 13em) 1fr; gap: 4px 16px; padding: 10px 14px; }
-  .tell div + div { border-top: 1px dashed var(--line); }
+  .tell { display: grid; margin: 0; border: 1px solid var(--color-text); }
+  .tell div { display: grid; grid-template-columns: minmax(8em, 13em) 1fr; gap: 4px 16px; padding: 12px 18px; }
+  .tell div + div { border-top: 1px solid var(--line); }
   .tell dt { font-weight: 800; }
   .tell dd { margin: 0; }
   @media (max-width: 600px) { .tell div { grid-template-columns: 1fr; } }

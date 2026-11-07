@@ -20,6 +20,10 @@ export interface Question {
   /** 이 지원 분야(묶음 ID) 중 하나를 골랐을 때만 보임 */
   conditionalOn?: string[];
   note?: string;
+  /** help 질문: 묶음 없이 선택지를 바로 보여 줌 (가정폭력 단기 — 원본의 help_options) */
+  flat?: boolean;
+  /** help 질문의 '모르겠어요'를 골랐을 때 보여 줄 안내 문구 */
+  noGoalNote?: string;
   /** 원본에 제목이 없는 질문(가정폭력 단기 '선택적 바로가기')은 화면용 제목을 붙이고 표시 */
   titleAdded?: boolean;
 }
@@ -70,7 +74,11 @@ export function flowFor(c: CaseId, h: Horizon): Flow | null {
     // 원본에 제목이 없음 → 화면용 제목 (운영자 검토 대상)
     questions.push({ id: 'shortcut', title: '지금 어떤 상황에 가까우신가요?', type: 'single', options: opts('shortcut', s.optional_shortcuts), titleAdded: true });
   }
-  questions.push(helpQ('help', '어떤 도움을 받고 싶으신가요?', s.help_groups, s.no_goal_option));
+  if (s.help_options) {
+    // 묶음 없는 단일 목록 — ID는 'help.번호' (원고 helpOptions도 이 ID를 씀)
+    const flat = helpQ('help', '어떤 도움을 받고 싶으신가요?', [{ id: 'help', label: '', options: s.help_options }], s.no_goal_option);
+    questions.push({ ...flat, flat: true, ...(s.no_goal_note ? { noGoalNote: s.no_goal_note } : {}) });
+  } else questions.push(helpQ('help', '어떤 도움을 받고 싶으신가요?', s.help_groups, s.no_goal_option));
   // 가족돌봄·생계교육 단기: 지역은 결과 안에서 필요할 때만 (optional_region_in_results)
   if (s.optional_region_in_results) questions.push({ id: 'region', title: '지역별 기관을 찾고 싶다면 지역을 골라 주세요', type: 'region', options: [], titleAdded: true });
   return { caseKey: key, horizon: h, questions };

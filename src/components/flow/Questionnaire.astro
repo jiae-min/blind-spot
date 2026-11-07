@@ -57,6 +57,23 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
         <fieldset class="choice q-help" data-q={q.id}>
           <legend>{q.title}</legend>
           <p class="hint">여러 개를 골라도 돼요. 고른 항목 바로 아래에 관련 정보가 열려요.</p>
+          {q.flat ? q.groups!.map((g) => (
+            <div class="opts opts--help" style="--cols:1;--cols-m:1;margin-bottom:var(--space-3)">
+              {g.options.map((o) => {
+                    const items = results(o);
+                    return (
+                      <>
+                        <label class="opt"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
+                        <div class="res" data-res hidden>
+                          {items.length > 0 ? items.map((it) => <ResultCard item={it} />) : (
+                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. {h === 'short-term' ? <>아래 <a href="#contacts">긴급 연락처와 도움말</a>의</> : <a href={href('help/')}>긴급 도움 페이지</a>} 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })}
+            </div>
+          )) : (
           <div class="groups">
             {q.groups!.map((g) => (
               <details class="grp" data-group={g.id}>
@@ -79,12 +96,13 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
               </details>
             ))}
           </div>
+          )}
           <div class="opts opts--help opts--soft" style="--cols:1;--cols-m:1">
             {q.options.map((o) => (
               <>
                 <label class="opt opt--soft"><input type="checkbox" value={o.id} data-opt data-exclusive autocomplete="off" /><span>{o.label}</span></label>
                 <div class="res" data-res hidden>
-                  <p class="empty">괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.</p>
+                  <p class="empty">{q.noGoalNote ?? '괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.'}</p>
                   <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" copy={false} />
                 </div>
               </>

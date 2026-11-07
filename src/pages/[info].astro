@@ -21,7 +21,7 @@ const ICONS: Record<string, string> = {
   route: '<path d="M20 5V35"/><path d="M20 9H31L35 13 31 17H20"/><path d="M20 20H9L5 24 9 28H20"/>',
 };
 ---
-<Base title={p.title} description={p.lead} sensitive={p.sensitive}>
+<Base title={p.title} description={p.lead} sensitive={p.sensitive} index={!p.draftNote}>
   <div class="wrap page">
     <section class="sec tick opening">
       {p.kicker && <p class="kicker">{p.kicker}</p>}

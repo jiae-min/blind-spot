@@ -89,7 +89,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
       ) : (
         <>
           <Choice name={`${uid}-${q.id}`} legend={q.title}
-                  hint={`${q.type === 'multi' ? '해당하는 것을 모두 골라 주세요. ' : ''}건너뛰어도 괜찮아요.`}
+                  hint={q.type === 'multi' ? '해당하는 것을 모두 골라 주세요. 건너뛰어도 괜찮아요.' : '건너뛰어도 괜찮아요. 고른 답을 다시 누르면 선택이 풀려요.'}
                   type={q.type === 'multi' ? 'checkbox' : 'radio'} withUnknown={false}
                   options={asChoice(q)} {...cols(q.options)} />
           {q.options.filter((o) => DANGER[o.id]).map((o) => (
@@ -126,6 +126,17 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
         if (i !== t && (t.hasAttribute('data-exclusive') || i.hasAttribute('data-exclusive'))) i.checked = false;
       });
     }, true);
+
+    // 하나만 고르는 질문: 고른 답을 다시 누르면 선택 해제 (v4 CMP-INPUT-01 — 답을 안 한 상태로 되돌릴 수 있게)
+    let was: HTMLInputElement | null = null;
+    const radioOf = (t: EventTarget | null) => (t instanceof HTMLInputElement && t.type === 'radio' ? t : null);
+    flow.addEventListener('pointerdown', (e) => { const r = radioOf(e.target); was = r && r.checked ? r : null; }, true);
+    flow.addEventListener('keydown', (e) => { if (e.key === ' ') { const r = radioOf(e.target); was = r && r.checked ? r : null; } }, true);
+    flow.addEventListener('click', (e) => {
+      const r = radioOf(e.target);
+      if (r && r === was) { r.checked = false; r.dispatchEvent(new Event('change', { bubbles: true })); }
+      was = null;
+    });
 
     const age = () => {
       const v = flow.querySelector<HTMLInputElement>('[data-age]')?.value;

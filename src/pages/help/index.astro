@@ -14,7 +14,8 @@ const JUMPS = [
   { id: 'no-call', label: '전화가 어려울 때' },
 ];
 ---
-<Base title="긴급 도움" sensitive>
+{/* 연락처는 운영자 확인 목록(D-024) → 검색 노출 허용 */}
+<Base title="긴급 도움" sensitive index>
   <div class="wrap page">
     <nav class="jumps" aria-label="이 페이지 바로가기">
       {JUMPS.map((j) => <a class="btn-accent" href={`#${j.id}`}>{j.label} <span class="arrow" aria-hidden="true">↓</span></a>)}

@@ -13,8 +13,12 @@ interface Props {
   sensitive?: boolean;
   /** 빠르게 나가기만 필요할 때(홈·모든 케이스 페이지). 기본은 sensitive와 같음 */
   quickExit?: boolean;
+  /** 검색 노출 허용 (v4 3.4 §7, D-041): 운영자가 확인·승인한 내용만 있는 페이지. 미승인·시안·제작 중 페이지와 미리보기 빌드는 늘 차단 */
+  index?: boolean;
 }
-const { title, description = '필요한 도움을 바로 찾을 수 있도록 안내할게요.', sensitive = false, quickExit = sensitive } = Astro.props;
+const { title, description = '필요한 도움을 바로 찾을 수 있도록 안내할게요.', sensitive = false, quickExit = sensitive, index = false } = Astro.props;
+const indexable = index && !SHOW_DRAFTS;
+const canonical = indexable && Astro.site ? new URL(Astro.url.pathname, Astro.site).href : null;
 // 폭력 관련 페이지는 탭·기록·공유 미리보기에 무슨 내용인지 드러나지 않게 (URL은 D-004대로 유지)
 const NEUTRAL_TITLE = 'blind spot · 안내';
 const pageTitle = sensitive ? NEUTRAL_TITLE : `${title} | blind spot`;
@@ -34,8 +38,9 @@ const FOOT_GROUPS = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {/* 실제 검증 콘텐츠가 없는 시안 단계: 검색 노출 차단 (3.4 §7) */}
-    <meta name="robots" content="noindex, nofollow" />
+    {/* 검색 노출: 승인된 내용만 있는 페이지만 허용, 나머지(미승인·시안·제작 중·미리보기)는 차단 (v4 3.4 §7) */}
+    <meta name="robots" content={indexable ? 'index, follow' : 'noindex, nofollow'} />
+    {canonical && <link rel="canonical" href={canonical} />}
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Content-Security-Policy" content={`default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src ${import.meta.env.DEV ? "'self' ws:" : "'none'"}; object-src 'none'; base-uri 'self'; form-action 'none'`} />
     <title>{pageTitle}</title>

@@ -2,6 +2,7 @@
 // 형식 오류 → 빌드 중단(실제 사이트는 직전 버전 유지). 확인 기한 지남·임박 → 경고만(화면에 '다시 확인 중' 표시).
 // 사용: node scripts/check-content.mjs  (content/drafts/ 도 함께 검사하되, 승인 칸은 요구하지 않음)
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,8 +11,18 @@ const DRAFTS = join(ROOT, 'drafts');
 const CASES = ['family-care', 'domestic-violence', 'sexual-violence', 'livelihood-education', 'reclusive-youth'];
 const HORIZONS = ['short-term', 'long-term'];
 const KINDS = ['guide', 'faq'];
-const COSTS = ['유료', '무료', '조건부 지원', '확인 필요'];
+const COSTS = ['유료', '의료비 발생', '무료', '조건부 지원', '확인 필요'];
 const SOON_DAYS = 14;
+
+// 승인 해시 (v4 REQ-DATA-008, D-041): 승인한 원고와 공개 원고가 한 글자라도 다르면 빌드 중단.
+// 항목에서 승인 칸(approvedBy·approvedAt·approvedHash)을 뺀 나머지를 키 순서대로 정렬해 SHA-256 → 앞 16자리.
+// 해시 보기: npm run hash:content (각 항목의 현재 해시를 출력 — 내용을 확인·승인한 뒤 approvedHash에 붙여 넣음)
+const APPROVAL_KEYS = ['approvedBy', 'approvedAt', 'approvedHash'];
+const canon = (v) => Array.isArray(v) ? `[${v.map(canon).join(',')}]`
+  : v && typeof v === 'object' ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canon(v[k])}`).join(',')}}`
+  : JSON.stringify(v);
+const itemHash = (it) => createHash('sha256').update(canon(Object.fromEntries(Object.entries(it).filter(([k]) => !APPROVAL_KEYS.includes(k))))).digest('hex').slice(0, 16);
+const HASH_MODE = process.argv.includes('--hash');
 const NEEDS = ['report', 'documents'];
 
 // 질문 화면 선택지 ID (src/data/questionnaire.ts와 같은 규칙: 묶음ID.번호 / 질문ID.번호 / help.none)
@@ -81,9 +92,13 @@ function checkFile(path, label, draft) {
     need(isDate(it.nextCheck), '"nextCheck"(다음 확인일)이 YYYY-MM-DD 형식이 아니에요');
     if (isDate(it.checkedAt)) need(it.checkedAt <= today, '"checkedAt"이 오늘보다 뒤예요');
     if (isDate(it.checkedAt) && isDate(it.nextCheck)) need(it.nextCheck > it.checkedAt, '"nextCheck"는 "checkedAt"보다 뒤여야 해요');
+    if (HASH_MODE) console.log(`${label}  ${it?.id ?? '(id 없음)'}  ${itemHash(it)}`);
     if (!draft) {
       need(str(it.approvedBy), '공개 파일인데 "approvedBy"(승인자)가 비었어요 — 승인 전이면 content/drafts/ 로 옮기세요');
       need(isDate(it.approvedAt), '공개 파일인데 "approvedAt"(승인일)이 없어요 — 승인 전이면 content/drafts/ 로 옮기세요');
+      const h = itemHash(it);
+      if (!str(it.approvedHash)) errors.push(`${at}: 공개 파일인데 "approvedHash"(승인 해시)가 없어요 — 내용을 확인했다면 "approvedHash": "${h}" 를 넣어 주세요`);
+      else if (it.approvedHash !== h) errors.push(`${at}: 승인한 뒤 내용이 바뀌었어요 (승인 해시 ${it.approvedHash} ≠ 현재 ${h}). 바뀐 내용을 다시 확인·승인하고 approvedHash를 "${h}" 로 고쳐 주세요`);
     }
     if (isDate(it.nextCheck)) {
       const left = days(it.nextCheck, today);

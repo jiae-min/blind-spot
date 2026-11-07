@@ -4,7 +4,7 @@ import GeneralDetail from '../../../components/templates/GeneralDetail.astro';
 import SafetyDetail from '../../../components/templates/SafetyDetail.astro';
 import ComingSoon from '../../../components/templates/ComingSoon.astro';
 import { CASES, COPY, HORIZONS, type CaseDef } from '../../../data/cases';
-import { SHOW_DRAFTS } from '../../../data/content';
+import { SHOW_DRAFTS, contentFor } from '../../../data/content';
 import { flowFor } from '../../../data/questionnaire';
 
 export function getStaticPaths() {
@@ -15,7 +15,10 @@ const { c, h } = Astro.props as { c: CaseDef; h: (typeof HORIZONS)[number] };
 const safety = c.sensitive && h.id === 'short-term';
 // 제작 중 케이스: 공개 빌드는 '제작 중' 화면. 미리보기 빌드에서는 v0.5 후속 질문 화면을 검토할 수 있게 보여 줌 (D-039)
 const soon = !c.ready && !(SHOW_DRAFTS && flowFor(c.id, h.id) && COPY[c.id]);
+// 검색 노출: 공개 케이스이고 승인된 안내가 1건 이상 있을 때만 (안내 0건이면 시안 자리 표시가 남아 있어 차단, v4 3.4 §7)
+const approved = [...contentFor(c.id, h.id, 'guide'), ...contentFor(c.id, h.id, 'faq')].some((i) => !i.draft);
+const index = c.ready && approved;
 ---
-<Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive} quickExit>
+<Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive} quickExit index={index}>
   {soon ? <ComingSoon c={c} h={h} /> : safety ? <SafetyDetail c={c} h={h} /> : <GeneralDetail c={c} h={h} />}
 </Base>

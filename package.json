@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "check:content": "node scripts/check-content.mjs",
+    "hash:content": "node scripts/check-content.mjs --hash",
     "prebuild": "node scripts/check-content.mjs",
     "prebuild:preview": "node scripts/check-content.mjs",
     "dev": "astro dev",

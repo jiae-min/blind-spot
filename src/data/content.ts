@@ -47,16 +47,17 @@ export interface Editorial {
   benefits: string[];
   notes?: string[];
   costDetail?: string;
-  /** 비용 항목별 줄. value: 유료 / 무료 / 조건부 지원 / 확인 필요 */
+  /** 비용 항목별 줄. value: 유료 / 의료비 발생 / 무료 / 조건부 지원 / 확인 필요 */
   costs?: { item: string; value: CostValue; detail?: string }[];
   merge?: string[];
   mergedInto?: string;
 }
 
-export type CostValue = '유료' | '무료' | '조건부 지원' | '확인 필요';
+export type CostValue = '유료' | '의료비 발생' | '무료' | '조건부 지원' | '확인 필요';
 /** 쉬운 말(유료·무료…) ↔ 표준 비용 문구 5종(2.1 §6) */
 export const COST_LABEL: Record<CostValue, string> = {
   유료: '본인부담금 발생',
+  '의료비 발생': '진료·검사·약제비 발생',
   무료: '무료 지원',
   '조건부 지원': '환급 가능 여부 확인 필요 · 조건부 지원',
   '확인 필요': '비용 발생 여부 확인 필요',
@@ -78,7 +79,7 @@ export interface EditableItem {
   costs?: { item: string; value: CostValue; detail?: string }[];
   sources: { title: string; url: string }[];
   checkedAt: string; nextCheck: string; cases?: CaseId[];
-  approvedBy?: string; approvedAt?: string;
+  approvedBy?: string; approvedAt?: string; approvedHash?: string;
   helpOptions?: string[]; conditions?: ItemConditions; needs?: ('report' | 'documents')[];
   institution?: string; eligibility?: string; access?: string; hours?: string;
 }

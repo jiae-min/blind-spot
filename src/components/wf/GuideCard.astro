@@ -24,7 +24,7 @@ const costs = item.editorial?.costs ?? null;
         <div>
           <dt>{c.item}</dt>
           <dd>
-            <strong class:list={['cv', { 'cv--paid': c.value === '유료', 'cv--free': c.value === '무료' }]}>{c.value}</strong>
+            <strong class:list={['cv', { 'cv--paid': c.value === '유료' || c.value === '의료비 발생', 'cv--free': c.value === '무료' }]}>{c.value}</strong>
             <span class="std">{COST_LABEL[c.value]}</span>
             {c.detail && <span class="detail">{c.detail}</span>}
           </dd>

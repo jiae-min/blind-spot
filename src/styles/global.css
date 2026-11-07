@@ -55,7 +55,7 @@ button, input, select, textarea, summary, code, kbd { font-family: inherit; font
 @media (min-width: 768px) { .wrap { padding: 0 var(--space-6); } }
 
 
-/* 2.3 뷰포트 매트릭스: 1025px 이상 또는 768–1024 가로 → 집형, 나머지 → 모바일형 */
+/* 2.3 뷰포트 매트릭스: 1025px 이상 또는 768–1024 가로(태블릿 높이) → 집형, 나머지(가로 휴대폰 포함) → 모바일형 */
 /* 작은 고정폭 대문자 라벨 (heronaiapp.com 스타일) */
 .mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
 
@@ -64,7 +64,9 @@ button, input, select, textarea, summary, code, kbd { font-family: inherit; font
 .btn-accent:hover, .btn-accent:focus-visible { background-color: var(--color-accent) !important; border-color: var(--color-accent) !important; color: var(--color-on-strong) !important; }
 
 .only-house { display: none; }
-@media (min-width: 1025px), (min-width: 768px) and (orientation: landscape) {
+/* 집형 = PC(1025px 이상) 또는 가로로 돌린 태블릿(폭 768px 이상 + 높이 600px 이상).
+   가로로 돌린 휴대폰은 높이가 440px 안팎이라 모바일형 유지 (2.3 §1·§10) */
+@media (min-width: 1025px), (min-width: 768px) and (orientation: landscape) and (min-height: 600px) {
   .only-house { display: block; }
   .only-mobile { display: none; }
 }

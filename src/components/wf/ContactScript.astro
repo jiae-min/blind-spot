@@ -5,8 +5,14 @@
 // 문장 틀은 4.2 §6 템플릿: 인사 → (발생한 시점) → (현재 상황) → (이미 취한 조치) → (필요한 지원) → (방문 가능 여부·비용·필요한 서류)
 // 짧게 말하기는 긴급 전화용으로 (현재 위치)와 필요한 연락을 먼저. 필요 없는 괄호는 빼고 말해도 됨.
 // 기관별 역할에 맞춘 문장은 검증된 기관 원고가 들어오면 기관마다 따로 둠 (지금은 같은 틀).
-interface Props { agencies?: string[] }
-const { agencies = ['[기관]'] } = Astro.props;
+interface Props {
+  agencies?: string[];
+  /** 괄호에 넣을 말 안내 — '전화할 때 전하면 좋은 내용'을 문장 바로 아래에 합침 (D-041) */
+  guide?: { tok: string; text: string }[];
+  /** 폭력 관련 페이지: 복사한 문장이 기기 복사 기록에 남을 수 있다는 안내 (v4 3.4 §10, 4.2 §7) */
+  sensitive?: boolean;
+}
+const { agencies = ['[기관]'], guide = [], sensitive = false } = Astro.props;
 type Part = string | { tok: string };
 const MODES = [
   { id: 'short', label: '짧게 말하기' },
@@ -15,12 +21,13 @@ const MODES = [
 const t = (tok: string) => ({ tok });
 const sample = (_agency: string, mode: 'short' | 'detailed'): Part[] =>
   mode === 'short'
-    ? ['안녕하세요. 지금 ', t('(현재 위치)'), '에 있어요. ', t('(현재 상황)'), ' 때문에 연락드렸어요. ', t('(필요한 지원)'), ' 받을 수 있을까요?']
+    ? ['안녕하세요. 지금 ', t('(현재 위치)'), '에 있어요. ', t('(현재 상황)'), ' 때문에 연락드렸어요. ', t('(필요한 지원)'), ' 받을 수 있을까요? 연락은 ', t('(다시 연락받을 방법)'), '으로 주세요.']
     : [
         '안녕하세요. ', t('(발생한 시점)'), '에 ', t('(현재 상황)'), ' 일이 생겨서 연락드렸어요. ',
         '지금까지 ', t('(이미 취한 조치)'), '까지 했어요. ',
         t('(필요한 지원)'), ' 받을 수 있을까요? ',
-        t('(방문 가능 여부·비용·필요한 서류)'), '도 알려 주세요.',
+        t('(방문 가능 여부·비용·필요한 서류)'), '도 알려 주세요. ',
+        '연락은 ', t('(다시 연락받을 방법)'), '으로 주세요.',
       ];
 ---
 <div class="script" data-script>
@@ -54,6 +61,16 @@ const sample = (_agency: string, mode: 'short' | 'detailed'): Part[] =>
     <span class="done" data-done aria-live="polite"></span>
     <button type="button" class="copy btn-accent" data-copy>문장 복사</button>
   </div>
+  {sensitive && <p class="clip-note">복사한 문장은 이 기기의 복사 기록에 남을 수 있어요. 함께 쓰는 기기라면 복사하지 말고 화면을 보며 말해 주세요.</p>}
+  {guide.length > 0 && (
+    <div class="guide">
+      <p class="guide-h">괄호 안에는 이렇게 말하면 돼요</p>
+      <dl>
+        {guide.map((g) => <div><dt><span class="tok">{g.tok}</span></dt><dd>{g.text}</dd></div>)}
+      </dl>
+      <p class="guide-note">말하기 어려운 건 빼도 괜찮아요. 상담원이 차례로 물어봐 줄 거예요.</p>
+    </div>
+  )}
 </div>
 
 <script>
@@ -108,4 +125,13 @@ const sample = (_agency: string, mode: 'short' | 'detailed'): Part[] =>
   }
   .copy-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; }
   .done { font-weight: 700; }
+  .clip-note { margin: var(--space-3) 0 0; font-size: 15px; text-align: right; }
+  .guide { margin-top: var(--space-5); border: 1px solid var(--color-text); }
+  .guide-h { margin: 0; padding: 12px 18px; font-weight: 800; border-bottom: 1px solid var(--color-text); }
+  .guide dl { margin: 0; }
+  .guide dl div { display: grid; grid-template-columns: minmax(9em, 14em) 1fr; gap: 4px 16px; padding: 12px 18px; }
+  .guide dl div + div { border-top: 1px solid var(--line); }
+  .guide dd { margin: 0; }
+  .guide-note { margin: 0; padding: 12px 18px; border-top: 1px solid var(--line); font-size: 15px; }
+  @media (max-width: 600px) { .guide dl div { grid-template-columns: 1fr; } }
 </style>

@@ -1,6 +1,6 @@
 # Cloudflare Pages HTTP 헤더 (3.4 §4, D-001)
 # Base.astro의 <meta> CSP·referrer는 로컬 미리보기용 대비책으로 남겨 둠. 둘을 바꿀 때는 함께 바꿀 것.
-# X-Robots-Tag: 시안 단계라 검색 노출 차단 (3.4 §7). 검증 콘텐츠 게시 시점에 제거.
+# 검색 노출은 페이지마다 <meta name="robots">로 정함 (v4 3.4 §7, D-041): 승인된 내용만 있는 페이지만 허용.
 
 /*
   Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
@@ -10,7 +10,6 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000
-  X-Robots-Tag: noindex, nofollow
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

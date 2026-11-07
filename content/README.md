@@ -15,7 +15,10 @@
 | `drafts/*.json` | 승인 전 원고. 같은 형식 | ❌ 저장소에 올라가지 않음. 로컬·미리보기·`/admin/`에서만 보임 |
 
 **이 저장소는 공개예요.** 검증·승인 전 원고는 `domestic-violence.json`에 넣지 말고 `drafts/` 폴더에 두세요.
-승인하면 항목을 `domestic-violence.json`으로 옮기고 `approvedBy`·`approvedAt`을 채워요.
+승인하면 항목을 `domestic-violence.json`으로 옮기고 `approvedBy`·`approvedAt`·`approvedHash`를 채워요.
+
+**승인 해시(`approvedHash`)** — 승인한 내용과 공개되는 내용이 같다는 표시예요. 승인 뒤 한 글자라도 바뀌면 빌드가 멈추고, 다시 확인한 뒤 새 해시를 넣어야 공개돼요.
+해시는 `npm run hash:content`로 볼 수 있어요. 해시를 넣지 않고 올리면 검사 오류 문구에 넣을 값이 그대로 나와요.
 
 ## 항목 형식
 
@@ -33,7 +36,7 @@
       "points": ["[도움 목록 — faq면 답의 나머지 문장]"],
       "notes": ["[알아 둘 점 — 없으면 빈 목록]"],
       "costs": [
-        { "item": "[비용 항목]", "value": "무료" }   // 유료 / 무료 / 조건부 지원 / 확인 필요
+        { "item": "[비용 항목]", "value": "무료" }   // 유료 / 의료비 발생 / 무료 / 조건부 지원 / 확인 필요
       ],
       "sources": [
         { "title": "[출처 이름]", "url": "https://..." }   // 공식 출처, 1개 이상
@@ -41,7 +44,8 @@
       "checkedAt": "2026-11-06",   // 출처로 확인한 날
       "nextCheck": "2027-02-06",   // 다시 확인할 날 (지나면 '다시 확인 중' 표시)
       "approvedBy": "운영자",
-      "approvedAt": "2026-11-06"
+      "approvedAt": "2026-11-06",
+      "approvedHash": "[npm run hash:content 로 본 16자리]"
     }
   ]
 }

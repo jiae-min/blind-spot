@@ -1,0 +1,120 @@
+---
+// 해바라기센터 지역 연결 (v0.5 후속, D-039) — 위 질문에서 고른 시·군·구로 정적 연결표만 조회
+// - GPS·지도 API·거리 계산 없음. '가장 가까운 센터'·'이동 N분'이라고 말하지 않음 (연결표가 거리 검증 전 제안안)
+// - 서울: 서울 센터 기본 + 표에 미리 연결된 접경 경기 센터만 추가 / 경기: 경기 센터만
+// - 아동형 센터: 성폭력 케이스에서만, 일반 센터 뒤에 '이용 대상 확인' 표시와 함께. 나이를 19세 이상으로 답하면 숨김
+// - 공식 확인(content/centers/verified.json) 전인 센터는 공개 빌드에서 이름·번호를 보여 주지 않고 1366 연결 안내로 대신함
+import { CENTERS, regionTable, showable } from '../../data/centers';
+import { SHOW_DRAFTS } from '../../data/content';
+import { telHref } from '../../data/emergency';
+interface Props { child: boolean }
+const { child } = Astro.props;
+const shown = CENTERS.filter(showable);
+---
+<div class="cm" data-cm data-table={JSON.stringify(regionTable())} data-child={child ? '1' : undefined}>
+  <p class="cm-hint" data-cm-state="none">위 질문에서 <strong>지금 계신 지역</strong>을 시·군·구까지 고르면, 그 지역에 연결해 둔 해바라기센터를 보여 드려요.</p>
+  <p class="cm-hint" data-cm-state="partial" hidden>구·시·군까지 고르면 연결해 둔 센터를 보여 드려요.</p>
+  <p class="cm-hint" data-cm-state="other" hidden>서울·경기 외 지역의 센터 연결 정보는 아직 준비 중이에요. 국번 없이 <a href={telHref('1366')}>1366</a>(24시간)에 전화하면 가까운 기관으로 연결을 요청할 수 있어요.</p>
+
+  <div data-cm-result hidden>
+    <h3 class="cm-h">이 지역에 연결해 둔 센터</h3>
+    <div class="cm-list" data-slot="p"></div>
+    <div data-wrap="a" hidden>
+      <h3 class="cm-h">함께 확인해 볼 수 있는 센터</h3>
+      <p class="cm-sub">서울 접경 지역이라 경기 센터도 함께 적어 두었어요.</p>
+      <div class="cm-list" data-slot="a"></div>
+    </div>
+    {child && (
+      <div data-wrap="c" hidden>
+        <h3 class="cm-h">아동·청소년을 지원하는 센터</h3>
+        <p class="cm-sub">이용할 수 있는 나이와 대상은 센터마다 달라요. 먼저 전화로 확인해 주세요.</p>
+        <div class="cm-list" data-slot="c"></div>
+      </div>
+    )}
+    <p class="cm-pending" data-cm-pending hidden>연결된 센터의 주소·전화번호를 공식 자료로 다시 확인하고 있어요. 그동안 국번 없이 <a href={telHref('1366')}>1366</a>(24시간)에 전화하면 가까운 기관으로 연결을 요청할 수 있어요.</p>
+    <p class="cm-note">이 목록은 행정구역을 기준으로 미리 연결해 둔 안내예요. <strong>실제 이동 거리나 시간을 비교한 결과가 아니에요.</strong> 가기 전에 전화로 이용 가능 여부와 방문 장소를 먼저 확인해 주세요.</p>
+  </div>
+
+  {/* 보여 줄 수 있는 센터 카드 (공개 빌드 = 공식 확인된 곳만, 미리보기 = 전부 + 표시) */}
+  <template data-cards>
+    {shown.map((c) => (
+      <article class="cc" data-center={c.id}>
+        <p class="cc-tags">
+          <span class="tag">{c.type}</span>
+          {!c.verified && <span class="tag tag--warn">공식 확인 전</span>}
+        </p>
+        <h4>{c.name}</h4>
+        {c.address && <p class="cc-addr">{c.address}{!c.verified && ' (주소 확인 필요)'}</p>}
+        <p class="cc-act">
+          {c.phone && <a class="call btn-accent" href={telHref(c.phone)}>☎ {c.phone}</a>}
+          {c.homepage && <a href={c.homepage} target="_blank" rel="noopener noreferrer">홈페이지<span class="sr-only"> (새 창)</span> ↗</a>}
+        </p>
+        {c.verified ? (
+          <p class="cc-src">근거 <a href={c.verified.sourceUrl} target="_blank" rel="noopener noreferrer">공식 안내<span class="sr-only"> (새 창)</span> ↗</a> · 확인일 {c.verified.checkedAt}</p>
+        ) : SHOW_DRAFTS && c.notes && <p class="cc-src">검수 메모: {c.notes}</p>}
+      </article>
+    ))}
+  </template>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cm]').forEach((box) => {
+    const table: Record<string, { p: string; a: string[]; c: string[] }> = JSON.parse(box.dataset.table!);
+    const tpl = box.querySelector<HTMLTemplateElement>('[data-cards]')!;
+    const card = (id: string) => tpl.content.querySelector<HTMLElement>(`[data-center="${id}"]`)?.cloneNode(true) as HTMLElement | undefined;
+    const state = (s: string) => box.querySelectorAll<HTMLElement>('[data-cm-state]').forEach((p) => (p.hidden = p.dataset.cmState !== s));
+    const result = box.querySelector<HTMLElement>('[data-cm-result]')!;
+    const pending = box.querySelector<HTMLElement>('[data-cm-pending]')!;
+    const render = (sido: string, key: string) => {
+      const row = key ? table[key] : undefined;
+      result.hidden = !row;
+      if (!row) { state(!sido ? 'none' : (sido === '서울특별시' || sido === '경기도') ? 'partial' : 'other'); return; }
+      state('');
+      const gg = sido === '경기도';
+      // 경기 선택 시 서울 센터는 넣지 않음
+      const add = row.a.filter((id) => !(gg && id.startsWith('seoul')));
+      const ageV = (document.querySelector<HTMLInputElement>('[data-age]')?.value ?? '').trim();
+      const adult = ageV !== '' && Number(ageV) >= 19;
+      let missing = 0;
+      const fill = (slot: string, ids: string[]) => {
+        const el = box.querySelector<HTMLElement>(`[data-slot="${slot}"]`);
+        if (!el) return 0;
+        el.textContent = '';
+        let n = 0;
+        ids.forEach((id) => { const c = card(id); if (c) { el.append(c); n++; } else missing++; });
+        return n;
+      };
+      fill('p', [row.p]);
+      const na = fill('a', add);
+      box.querySelector<HTMLElement>('[data-wrap="a"]')!.hidden = na === 0;
+      const cw = box.querySelector<HTMLElement>('[data-wrap="c"]');
+      if (cw) cw.hidden = adult || fill('c', adult ? [] : row.c) === 0;
+      pending.hidden = missing === 0;
+    };
+    let last = { sido: '', key: '' };
+    document.addEventListener('bs-region', (e) => { last = (e as CustomEvent).detail; render(last.sido, last.key); });
+    document.addEventListener('input', (e) => { if ((e.target as HTMLElement).matches?.('[data-age]')) render(last.sido, last.key); });
+  });
+</script>
+
+<style>
+  .cm-hint, .cm-sub, .cm-note, .cm-pending { font-size: 15px; margin: 0 0 var(--space-3); }
+  .cm-hint[hidden], [data-wrap][hidden], [data-cm-result][hidden], .cm-pending[hidden] { display: none; }
+  .cm-pending { padding: 10px 12px; background: rgba(123, 158, 137, .12); font-weight: 600; }
+  .cm-note { margin-top: var(--space-3); color: rgba(51, 56, 35, .85); }
+  .cm-h { font-size: 18px; margin: var(--space-4) 0 var(--space-2); }
+  .cm-list { display: grid; gap: var(--space-3); }
+  @media (min-width: 768px) { .cm-list { grid-template-columns: 1fr 1fr; } }
+  .cm :global(.cc) { border: 1px solid var(--color-text); padding: var(--space-4); background: var(--color-canvas); }
+  .cm :global(.cc-tags) { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+  .cm :global(.tag) { font-size: 13px; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
+  .cm :global(.tag--warn) { background: var(--color-accent-text); border-color: var(--color-accent-text); color: var(--color-on-strong); }
+  .cm :global(.cc h4) { font-size: 18px; margin: 0 0 4px; }
+  .cm :global(.cc-addr) { margin: 0 0 var(--space-3); font-size: 15px; }
+  .cm :global(.cc-act) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 var(--space-2); }
+  .cm :global(.call) {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-emergency);
+    background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; text-decoration: none;
+  }
+  .cm :global(.cc-src) { margin: 0; font-size: 13px; color: rgba(51, 56, 35, .75); }
+</style>

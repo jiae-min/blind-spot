@@ -1,0 +1,19 @@
+{
+  "package": "blindspot-post-v0.5-change-set",
+  "createdOn": "2026-11-07",
+  "sourceBoundary": "Only conversation after last v0.5 ZIP handoff",
+  "basePackageName": "BlindSpot_가정폭력_단기장기_Claude_통합자료_v0.5_2026-11-07.zip",
+  "coverage": {
+    "cases": [
+      "domestic_violence",
+      "sexual_violence",
+      "family_care",
+      "livelihood_education"
+    ],
+    "centerCount": 11,
+    "seoulDistrictCount": 25,
+    "gyeonggiCityCountyCount": 31,
+    "mappingRows": 72
+  },
+  "validationScope": "JSON syntax, ids, complete drafted coverage, zip CRC. No true distance, real-time capacity or current official verification."
+}

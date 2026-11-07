@@ -1,21 +1,21 @@
 ---
 // SCR-S-001 긴급/피해지원 상세 (가정폭력·성폭력 단기) — 와이어프레임
-// 순서(D-009): 바로 보기 버튼 → 지금 필요한 조치 → 질문 → 답에 맞는 행동 → 연락처 → 전화 문장 → 대안 → 이후 → FAQ → 근거
+// 순서(D-039, v0.5 후속): 바로 보기 버튼 → 질문(위험 1문항·선택 위치·필요한 도움, 고른 항목 아래 결과) → 타임라인
+//   → 지금 필요한 조치 → 이후 → FAQ → 긴급 연락처와 도움말(연락처·센터·전화 문장·전달 내용·대안) → 근거
+// (이전 순서 D-009: 연락처를 FAQ 앞에 두었음 → 결과·타임라인 뒤로 이동)
 // - 안내를 다 보고 실행할 확신이 들 때 연락처를 보여 줌. 급한 사람은 상단 버튼으로 연락처에 바로 감.
 // - 성폭력 3문항(경과시간 → 지역 → 약물 의심) 순서 고정, 모두 건너뛰기 가능, 답 요약 카드 금지
 // - 답은 저장·URL·분석 전송 금지 (EVT-SAFE-INPUT). 사건 상세 서술을 요구하지 않음.
 import Slot from '../wf/Slot.astro';
 import Choice from '../wf/Choice.astro';
 import Conditions from '../wf/Conditions.astro';
-import CenterList from '../wf/CenterList.astro';
-import EmergencyTop from '../wf/EmergencyTop.astro';
-import Alternatives from '../wf/Alternatives.astro';
-import ContactScript from '../wf/ContactScript.astro';
 import Faq from '../wf/Faq.astro';
 import GuideCard from '../wf/GuideCard.astro';
 import Region from '../wf/Region.astro';
+import Questionnaire from '../flow/Questionnaire.astro';
+import ContactsHelp from '../flow/ContactsHelp.astro';
 import { STEP_RULES } from '../../data/step-rules';
-import { contentFor, resourcesFor } from '../../data/content';
+import { contentFor } from '../../data/content';
 import { COPY, HORIZONS, href, type CaseDef } from '../../data/cases';
 
 interface Props { c: CaseDef; h: (typeof HORIZONS)[number] }
@@ -41,14 +41,9 @@ const DRUG = [
   { value: 'skip', label: '건너뛰기' },
 ];
 const isSV = c.id === 'sexual-violence';
-// 위 연락처 카드와 같은 순서 — 기관이 정해지면 이름으로 교체
-// 연락처 목록에 기관 자료가 있으면 실제 기관 이름, 없으면 자리 표시
-const AGENCIES = resourcesFor(c.id).length ? ['1366', '해바라기센터'] : ['[기관 1]', '[기관 2]'];
-// 질문 영역 CTA: 답하면 얻는 것을 먼저, 건너뛰어도 된다는 안심은 뒤에
-const CTA = {
-  title: '답해 주시면, 지금 당장 필요한 걸 알려 드릴게요',
-  intro: '세 가지만 여쭤볼게요. 모르거나 답하기 어려우면 건너뛰어도 괜찮아요. 답한 내용은 저장하거나 어디에도 보내지 않아요.',
-};
+// 이전 설계(D-008)의 성폭력 3문항(경과시간 → 지역 → 약물)과 가정폭력 지역 질문.
+// v0.5 후속 설계(단기 1문항 + 선택 위치)와 겹쳐서 기본으로 끔 — 지우지 않고 남겨 둠. 계속 쓸지는 운영자 결정 (D-039)
+const LEGACY_QUESTIONS = false;
 ---
 <div class="wrap page">
   {/* 구역마다 가는 선 상자 + 모서리 사각형 (.sec .tick) */}
@@ -65,8 +60,9 @@ const CTA = {
     </p>
   )}
 
-  {/* 질문을 바로 고르게: 답하지 않아도 아래 조치는 모두 보임 */}
-  {isSV ? (
+  {/* 질문을 바로 고르게: 답하지 않아도 아래 조치는 모두 보임 (v0.5 후속 질문) */}
+  <Questionnaire c={c} h={h.id} />
+  {LEGACY_QUESTIONS && (isSV ? (
     <Conditions mode="safe">
       <Choice name="sv-time" legend="1. 일이 있고 얼마나 지났나요?" options={TIME} />
       <Region name="sv-region" legend="2. 어느 지역에 계신가요?" />
@@ -77,7 +73,7 @@ const CTA = {
       <Region name="dv-region" legend="어느 지역에 계신가요?" />
       <Slot label="그 밖의 질문" cmp="CMP-INPUT-01" note="가정폭력 경로의 다른 질문 항목은 아직 정해지지 않음(D-008). 건너뛰기 가능·저장 없음." />
     </Conditions>
-  )}
+  ))}
   </section>
 
   {/* 지금 필요한 조치: 단계별 카드 (CMP-ALERT-01 / CMP-CARD-01). 신고·사건 설명을 요구하지 않음 */}
@@ -95,26 +91,6 @@ const CTA = {
     )}
   </section>
 
-  {/* 안내를 다 본 뒤 실행할 차례에 연락처와 전화 문장. 급하면 상단 '긴급 연락처 바로 보기'로 바로 이동 (D-009) */}
-  <section id="contacts" class="sec tick" tabindex="-1">
-    <h2>지금 연락할 수 있는 곳</h2>
-    {/* 긴급 도움 페이지와 같은 확정 연락처 112·119·1366 (D-024) */}
-    <EmergencyTop prefix={`${c.id}-top`} />
-    <div class="gap"></div>
-    <CenterList caseId={c.id} />
-    <p class="more-help"><a href={href('help/')}>상황별 연락처 모두 보기 →</a></p>
-  </section>
-
-  <section class="sec tick">
-    <h2>전화할 때 이렇게 말해 보세요</h2>
-    <p class="sub desc">거는 곳에 따라 할 수 있는 말이 달라요. 전화할 곳을 먼저 고르고, 주황색 괄호 부분만 내 상황에 맞게 바꿔 말해 보세요. 필요 없는 부분은 빼도 괜찮아요.</p>
-    <ContactScript agencies={AGENCIES} />
-    <div class="gap"></div>
-  <h3 class="alt-h">연결이 안 되거나 전화가 어려울 때</h3>
-  <Alternatives />
-
-  </section>
-
   <section class="sec tick">
   <Slot label="이후 일정" note="며칠·몇 주 뒤에 확인할 일. 관련 장기 경로로 연결.">
     <p><a href={href(`cases/${c.id}/${other.id}/`)}>{other.title} ({other.sub}) 보기 →</a></p>
@@ -126,6 +102,9 @@ const CTA = {
     <h2>궁금할 수 있는 질문</h2>
     <Faq items={faqs} />
   </section>
+
+  {/* 결과·타임라인 뒤: 연락처·센터·전화 문장·전달 내용·대안을 한 구역에 (D-039). 급하면 상단 버튼으로 바로 이동 */}
+  <ContactsHelp c={c} horizon={h.id} />
 
   <div class="sec-after">
 
@@ -189,8 +168,6 @@ const CTA = {
   .first { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; font-weight: 700; font-size: 18px; }
   .block { margin: var(--space-7) 0; }
   .block:focus { outline: none; }
-  /* 상단 고정 헤더(60px)에 제목이 가리지 않게 */
-  #contacts { scroll-margin-top: 76px; }
   .sub { margin: -8px 0 var(--space-4); }
   .cards { display: grid; gap: var(--space-4); }
   @media (min-width: 768px) { .cards { grid-template-columns: 1fr 1fr; } }

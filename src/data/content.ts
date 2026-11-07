@@ -29,7 +29,15 @@ export interface ContentItem {
   mergedIds?: string[];
   /** 단계 카드 편집안 (행동형 제목·도움 목록). 공개본에는 승인된 것만 들어옴 */
   editorial: Editorial | null;
+  /** 질문 화면 연결 (v0.5 후속, D-039): 이 원고를 바로 아래에 보여 줄 선택지 ID (data/questionnaire.ts) */
+  helpOptions?: string[];
+  /** 공식 조건 — 응답과 비교해 '기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치'만 표시. 삭제하지 않음 */
+  conditions?: ItemConditions;
+  /** 실행 경로 표시: report = 신고가 필요한 경로, documents = 서류가 필요한 경로 → 응답에 따라 순서·안내만 조정 */
+  needs?: ('report' | 'documents')[];
+  institution?: string; eligibility?: string; access?: string; hours?: string;
 }
+export interface ItemConditions { regions?: string[]; ageMin?: number; ageMax?: number }
 
 export interface Editorial {
   approved: boolean;
@@ -71,6 +79,8 @@ export interface EditableItem {
   sources: { title: string; url: string }[];
   checkedAt: string; nextCheck: string; cases?: CaseId[];
   approvedBy?: string; approvedAt?: string;
+  helpOptions?: string[]; conditions?: ItemConditions; needs?: ('report' | 'documents')[];
+  institution?: string; eligibility?: string; access?: string; hours?: string;
 }
 type EditableFile = { case: CaseId; items: EditableItem[] };
 const fromEditable = (file: string, f: EditableFile, draft: boolean): ContentItem[] =>
@@ -86,6 +96,8 @@ const fromEditable = (file: string, f: EditableFile, draft: boolean): ContentIte
       order: e.order, draft,
       // 단계 카드는 쓴 그대로 보여 줌(행동형 제목·도움 목록). FAQ는 답을 문장으로 나눠 보여 줌
       editorial: e.kind === 'guide' ? { approved: !draft, action: e.title, subtitle: e.subtitle, benefits: e.points ?? [], notes: e.notes ?? [], costs: costs.length ? costs : undefined } : null,
+      helpOptions: e.helpOptions, conditions: e.conditions, needs: e.needs,
+      institution: e.institution, eligibility: e.eligibility, access: e.access, hours: e.hours,
     };
   });
 const editableFiles = import.meta.glob<EditableFile>('../../content/*.json', { eager: true, import: 'default' });
@@ -107,6 +119,11 @@ export const CONTENT: ContentItem[] = [
 
 /** 오늘 기준 확인 기한이 지났는지 (빌드 시각 기준) */
 export const isStale = (i: Pick<ContentItem, 'nextCheck'>, today = new Date().toISOString().slice(0, 10)) => !!i.nextCheck && i.nextCheck < today;
+
+/** 질문 화면: 이 선택지 바로 아래에 보여 줄 확인된 원고 (같은 원고는 여러 선택지에서 재사용) */
+export const contentForOption = (c: CaseId, h: Horizon, optionId: string) =>
+  CONTENT.filter((i) => i.kind === 'guide' && i.horizon === h && i.cases.includes(c) && !i.mergedInto && i.helpOptions?.includes(optionId))
+    .sort((a, b) => a.order - b.order);
 
 export const contentFor = (c: CaseId, h: Horizon, kind: ContentItem['kind']) =>
   CONTENT.filter((i) => i.kind === kind && i.horizon === h && i.cases.includes(c) && !i.mergedInto)

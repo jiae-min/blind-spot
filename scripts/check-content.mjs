@@ -12,6 +12,21 @@ const HORIZONS = ['short-term', 'long-term'];
 const KINDS = ['guide', 'faq'];
 const COSTS = ['유료', '무료', '조건부 지원', '확인 필요'];
 const SOON_DAYS = 14;
+const NEEDS = ['report', 'documents'];
+
+// 질문 화면 선택지 ID (src/data/questionnaire.ts와 같은 규칙: 묶음ID.번호 / 질문ID.번호 / help.none)
+// helpOptions에 없는 ID를 적으면 빌드를 멈춤 — 원본 질문 순서가 바뀌어 ID가 밀렸을 때 바로 알 수 있게
+const Q = JSON.parse(readFileSync(new URL('../src/data/v05/case_questionnaires.json', import.meta.url), 'utf8')).caseDefinitions;
+const QKEY = { 'domestic-violence': 'domestic_violence', 'sexual-violence': 'sexual_violence', 'family-care': 'family_care', 'livelihood-education': 'livelihood_education' };
+const optionIds = (caseId, horizon) => {
+  const d = Q[QKEY[caseId]];
+  if (!d) return new Set();
+  const out = new Set();
+  const groups = horizon === 'short-term' ? d.short.help_groups : d.long.questions.find((q) => q.groups)?.groups ?? [];
+  groups.forEach((g) => g.options.forEach((_, i) => out.add(`${g.id}.${i + 1}`)));
+  out.add(horizon === 'short-term' ? 'help.none' : 'goals.none');
+  return out;
+};
 
 const today = new Date().toISOString().slice(0, 10);
 const errors = [], warns = [];
@@ -38,6 +53,21 @@ function checkFile(path, label, draft) {
     need(strArr(it.points ?? []), '"points"는 문장 목록이어야 해요');
     need(strArr(it.notes ?? []), '"notes"는 문장 목록이어야 해요');
     need(it.cases === undefined || (Array.isArray(it.cases) && it.cases.every((c) => CASES.includes(c))), '"cases"에 없는 케이스가 있어요');
+    // 질문 화면 연결 칸 (선택, D-039)
+    if (it.helpOptions !== undefined) {
+      need(strArr(it.helpOptions), '"helpOptions"는 선택지 ID 목록이어야 해요');
+      const valid = new Set((it.cases ?? [data.case]).flatMap((c) => [...optionIds(c, it.horizon)]));
+      (it.helpOptions ?? []).filter((o) => !valid.has(o)).forEach((o) => errors.push(`${at}: "helpOptions"의 "${o}"는 이 케이스·기간의 질문에 없는 선택지예요`));
+    }
+    if (it.conditions !== undefined) {
+      const c = it.conditions;
+      need(c && typeof c === 'object', '"conditions"는 { regions, ageMin, ageMax } 형식이어야 해요');
+      need(c?.regions === undefined || strArr(c.regions), '"conditions.regions"는 시·도 이름 목록이어야 해요 (예: "서울특별시")');
+      need(c?.ageMin === undefined || Number.isInteger(c.ageMin), '"conditions.ageMin"은 정수여야 해요');
+      need(c?.ageMax === undefined || Number.isInteger(c.ageMax), '"conditions.ageMax"는 정수여야 해요');
+    }
+    need(it.needs === undefined || (Array.isArray(it.needs) && it.needs.every((n) => NEEDS.includes(n))), `"needs"는 ${NEEDS.join(' / ')} 중에서만 적어 주세요`);
+    for (const k of ['institution', 'eligibility', 'access', 'hours']) need(it[k] === undefined || str(it[k]), `"${k}"가 비었어요 — 모르면 칸을 지워 두면 '기관 확인 필요'로 보여요`);
     (it.costs ?? []).forEach((c, k) => {
       need(str(c?.item), `비용 ${k + 1}: "item"이 비었어요`);
       need(COSTS.includes(c?.value), `비용 ${k + 1}: "value"는 ${COSTS.join(' / ')} 중 하나여야 해요`);
@@ -75,6 +105,23 @@ for (const f of files) {
     if (ids.has(id)) errors.push(`"${id}" 번호가 ${ids.get(id)}와 ${f.label}에 겹쳐요`);
     else ids.set(id, f.label);
   }
+}
+
+// 공식 확인한 해바라기센터 (content/centers/verified.json, D-039) — 여기 있는 센터만 공개 화면에 이름·번호가 나옴
+const CENTER_FILE = join(ROOT, 'centers', 'verified.json');
+if (existsSync(CENTER_FILE)) {
+  const dir = JSON.parse(readFileSync(new URL('../src/data/v05/center_directory.json', import.meta.url), 'utf8')).centers.map((c) => c.id);
+  try {
+    const v = JSON.parse(readFileSync(CENTER_FILE, 'utf8'));
+    if (!Array.isArray(v.centers)) errors.push('content/centers/verified.json: "centers" 목록이 없어요');
+    (v.centers ?? []).forEach((c, n) => {
+      const at = `content/centers/verified.json ${n + 1}번째${c?.id ? ` (${c.id})` : ''}`;
+      if (!dir.includes(c?.id)) errors.push(`${at}: "id"는 ${dir.join(' / ')} 중 하나여야 해요`);
+      if (!isDate(c?.checkedAt) || c.checkedAt > today) errors.push(`${at}: "checkedAt"(확인일)이 YYYY-MM-DD 형식이 아니거나 오늘보다 뒤예요`);
+      if (!(typeof c?.sourceUrl === 'string' && /^https:\/\//.test(c.sourceUrl))) errors.push(`${at}: "sourceUrl"은 https:// 로 시작하는 공식 출처여야 해요`);
+      if (!str(c?.approvedBy)) errors.push(`${at}: "approvedBy"(확인한 사람)가 비었어요`);
+    });
+  } catch (e) { errors.push(`content/centers/verified.json: JSON 형식이 깨졌어요 — ${e.message}`); }
 }
 
 for (const w of warns) console.warn(`⚠ ${w}`);

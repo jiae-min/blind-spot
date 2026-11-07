@@ -3,7 +3,9 @@ import Base from '../../../layouts/Base.astro';
 import GeneralDetail from '../../../components/templates/GeneralDetail.astro';
 import SafetyDetail from '../../../components/templates/SafetyDetail.astro';
 import ComingSoon from '../../../components/templates/ComingSoon.astro';
-import { CASES, HORIZONS, type CaseDef } from '../../../data/cases';
+import { CASES, COPY, HORIZONS, type CaseDef } from '../../../data/cases';
+import { SHOW_DRAFTS } from '../../../data/content';
+import { flowFor } from '../../../data/questionnaire';
 
 export function getStaticPaths() {
   return CASES.flatMap((c) => HORIZONS.map((h) => ({ params: { case: c.id, horizon: h.id }, props: { c, h } })));
@@ -11,7 +13,9 @@ export function getStaticPaths() {
 const { c, h } = Astro.props as { c: CaseDef; h: (typeof HORIZONS)[number] };
 // 폭력 관련 단기 → SCR-S-001, 그 밖(일반 케이스, 폭력 관련 장기) → SCR-G-001
 const safety = c.sensitive && h.id === 'short-term';
+// 제작 중 케이스: 공개 빌드는 '제작 중' 화면. 미리보기 빌드에서는 v0.5 후속 질문 화면을 검토할 수 있게 보여 줌 (D-039)
+const soon = !c.ready && !(SHOW_DRAFTS && flowFor(c.id, h.id) && COPY[c.id]);
 ---
 <Base title={`${c.label} · ${h.title}`} sensitive={c.sensitive} quickExit>
-  {!c.ready ? <ComingSoon c={c} h={h} /> : safety ? <SafetyDetail c={c} h={h} /> : <GeneralDetail c={c} h={h} />}
+  {soon ? <ComingSoon c={c} h={h} /> : safety ? <SafetyDetail c={c} h={h} /> : <GeneralDetail c={c} h={h} />}
 </Base>

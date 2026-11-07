@@ -1,0 +1,61 @@
+---
+// 선택지 바로 아래 결과 카드 (v0.5 후속). 승인된 원고(content/*.json)에 적힌 사실만 보여 주고,
+// 적히지 않은 칸은 '기관 확인 필요'로 둠. 자격 승인을 단정하지 않음.
+// 상태(기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치)는 응답에 따라 브라우저에서 다시 계산 — 카드를 지우지 않음.
+import Evidence from '../wf/Evidence.astro';
+import { COST_LABEL, presentGuide, type ContentItem } from '../../data/content';
+interface Props { item: ContentItem }
+const { item } = Astro.props;
+const v = presentGuide(item);
+const costs = item.editorial?.costs ?? null;
+const cond = item.conditions ?? {};
+const UNKNOWN = '기관 확인 필요';
+---
+<article class="rc" data-rc
+  data-regions={cond.regions?.join('|')}
+  data-age-min={cond.ageMin}
+  data-age-max={cond.ageMax}
+  data-needs={item.needs?.join(' ')}
+  data-order={item.order}>
+  <p class="rc-meta">
+    <span class="st" data-st>추가 확인 필요</span>
+    {item.draft && <span class="draft-tag">검증 전 초안</span>}
+  </p>
+  <h4>{v.title}</h4>
+  {item.institution && <p class="inst">{item.institution}</p>}
+  <p class="sub">{v.subtitle}</p>
+  {v.list.length > 0 && <ul class="pts">{v.list.map((t) => <li>{t}</li>)}</ul>}
+  <dl class="facts">
+    <div><dt>대상</dt><dd>{item.eligibility ?? UNKNOWN}</dd></div>
+    <div><dt>이용 방법</dt><dd>{item.access ?? UNKNOWN}</dd></div>
+    <div><dt>비용</dt><dd>{costs ? costs.map((c) => <span class="cost"><strong>{c.item}</strong> {c.value} <span class="std">({COST_LABEL[c.value]})</span></span>) : item.costStatus}</dd></div>
+    <div><dt>운영시간</dt><dd>{item.hours ?? UNKNOWN}</dd></div>
+  </dl>
+  {v.notes.length > 0 && <ul class="notes">{v.notes.map((n) => <li>{n}</li>)}</ul>}
+  <p class="adj" data-note="report" hidden>신고하지 않아도 상담을 먼저 받을 수 있는지 기관에 확인해 보세요. 신고는 원할 때 결정해도 괜찮아요.</p>
+  <p class="adj" data-note="documents" hidden>서류가 없어도 상담부터 시작할 수 있는지, 대신 낼 수 있는 자료가 있는지 기관에 확인해 보세요.</p>
+  <p class="adj" data-note="mismatch" hidden>고른 답과 공식 조건이 맞지 않는 부분이 있어요. 예외가 있을 수 있으니 기관에 확인해 보세요.</p>
+  <Evidence item={item} />
+</article>
+
+<style>
+  .rc { border: 1px solid var(--line); background: #fff; padding: var(--space-4); }
+  .rc + .rc { margin-top: var(--space-3); }
+  .rc-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+  .st, .draft-tag { font-size: 13px; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
+  .st[data-v='ok'] { background: var(--color-brand-secondary-strong); border-color: var(--color-brand-secondary-strong); color: var(--color-on-strong); }
+  .st[data-v='no'] { border-style: dashed; }
+  .draft-tag { background: var(--color-accent-text); border-color: var(--color-accent-text); color: var(--color-on-strong); }
+  h4 { font-size: 18px; margin: 0 0 2px; }
+  .inst { margin: 0 0 4px; font-weight: 700; color: var(--color-brand-secondary-strong); }
+  .sub { margin: 0 0 var(--space-2); }
+  .pts, .notes { margin: 0 0 var(--space-3); padding-left: 1.2em; }
+  .facts { display: grid; gap: 4px; margin: 0 0 var(--space-3); font-size: 15px; }
+  .facts div { display: grid; grid-template-columns: 6em 1fr; gap: 8px; }
+  .facts dt { font-weight: 700; }
+  .facts dd { margin: 0; }
+  .cost { display: block; }
+  .std { font-size: 13px; }
+  .adj { margin: 0 0 var(--space-2); padding: 8px 12px; background: rgba(123, 158, 137, .12); font-size: 15px; font-weight: 600; }
+  .adj[hidden] { display: none; }
+</style>

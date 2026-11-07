@@ -1,0 +1,914 @@
+{
+  "version": "draft-post-v0.5-2026-11-07",
+  "mappingStatus": "NOT_VERIFIED_FOR_TRAVEL_TIME_OR_NEAREST",
+  "rules": {
+    "seoulDefaultOnly": "서울 소재 일반 센터 우선",
+    "seoulCrossBorderExceptions": "명시적으로 매핑된 서울 접경 지역에만 경기 센터 추가 후보",
+    "gyeonggiOnly": "경기 선택 시 서울 센터 자동 추천 안 함",
+    "childCenter": "아동형 대상·성폭력 케이스에 부합할 때만 추가 후보; 서울·경기 전역에서 검색 가능",
+    "routing": "GPS·실시간 거리 계산 사용 안 함",
+    "ranking": "지역 연결표는 최단거리 보장이 아님"
+  },
+  "regions": [
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "종로구",
+      "regionKey": "서울특별시/서울특별시/종로구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "중구",
+      "regionKey": "서울특별시/서울특별시/중구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "성북구",
+      "regionKey": "서울특별시/서울특별시/성북구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "성동구",
+      "regionKey": "서울특별시/서울특별시/성동구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "용산구",
+      "regionKey": "서울특별시/서울특별시/용산구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "서대문구",
+      "regionKey": "서울특별시/서울특별시/서대문구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "마포구",
+      "regionKey": "서울특별시/서울특별시/마포구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [
+        "gyeonggi-northwest"
+      ],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "은평구",
+      "regionKey": "서울특별시/서울특별시/은평구",
+      "primaryCenterId": "seoul-central",
+      "additionalCenterIds": [
+        "gyeonggi-northwest"
+      ],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "중랑구",
+      "regionKey": "서울특별시/서울특별시/중랑구",
+      "primaryCenterId": "seoul-north",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "노원구",
+      "regionKey": "서울특별시/서울특별시/노원구",
+      "primaryCenterId": "seoul-north",
+      "additionalCenterIds": [
+        "gyeonggi-northeast"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "도봉구",
+      "regionKey": "서울특별시/서울특별시/도봉구",
+      "primaryCenterId": "seoul-north",
+      "additionalCenterIds": [
+        "gyeonggi-northeast"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "강북구",
+      "regionKey": "서울특별시/서울특별시/강북구",
+      "primaryCenterId": "seoul-north",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "동대문구",
+      "regionKey": "서울특별시/서울특별시/동대문구",
+      "primaryCenterId": "seoul-north",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "동작구",
+      "regionKey": "서울특별시/서울특별시/동작구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "관악구",
+      "regionKey": "서울특별시/서울특별시/관악구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "금천구",
+      "regionKey": "서울특별시/서울특별시/금천구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "구로구",
+      "regionKey": "서울특별시/서울특별시/구로구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [
+        "gyeonggi-central"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "영등포구",
+      "regionKey": "서울특별시/서울특별시/영등포구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "양천구",
+      "regionKey": "서울특별시/서울특별시/양천구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [
+        "gyeonggi-central"
+      ],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "강서구",
+      "regionKey": "서울특별시/서울특별시/강서구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [
+        "gyeonggi-northwest",
+        "gyeonggi-central"
+      ],
+      "childCenterIds": [
+        "seoul-child"
+      ],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "서초구",
+      "regionKey": "서울특별시/서울특별시/서초구",
+      "primaryCenterId": "seoul-south",
+      "additionalCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "송파구",
+      "regionKey": "서울특별시/서울특별시/송파구",
+      "primaryCenterId": "seoul-east",
+      "additionalCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "강동구",
+      "regionKey": "서울특별시/서울특별시/강동구",
+      "primaryCenterId": "seoul-east",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "광진구",
+      "regionKey": "서울특별시/서울특별시/광진구",
+      "primaryCenterId": "seoul-east",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "서울특별시",
+      "city": "서울특별시",
+      "district": "강남구",
+      "regionKey": "서울특별시/서울특별시/강남구",
+      "primaryCenterId": "seoul-east",
+      "additionalCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childCenterIds": [],
+      "childAccessibleCitywide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "고양시",
+      "district": "덕양구",
+      "regionKey": "경기도/고양시/덕양구",
+      "primaryCenterId": "gyeonggi-northwest",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "고양시",
+      "district": "일산동구",
+      "regionKey": "경기도/고양시/일산동구",
+      "primaryCenterId": "gyeonggi-northwest",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "고양시",
+      "district": "일산서구",
+      "regionKey": "경기도/고양시/일산서구",
+      "primaryCenterId": "gyeonggi-northwest",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "파주시",
+      "district": null,
+      "regionKey": "경기도/파주시",
+      "primaryCenterId": "gyeonggi-northwest",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "의정부시",
+      "district": null,
+      "regionKey": "경기도/의정부시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "양주시",
+      "district": null,
+      "regionKey": "경기도/양주시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "동두천시",
+      "district": null,
+      "regionKey": "경기도/동두천시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "포천시",
+      "district": null,
+      "regionKey": "경기도/포천시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "연천군",
+      "district": null,
+      "regionKey": "경기도/연천군",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "남양주시",
+      "district": null,
+      "regionKey": "경기도/남양주시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "구리시",
+      "district": null,
+      "regionKey": "경기도/구리시",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "가평군",
+      "district": null,
+      "regionKey": "경기도/가평군",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "양평군",
+      "district": null,
+      "regionKey": "경기도/양평군",
+      "primaryCenterId": "gyeonggi-northeast",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "부천시",
+      "district": "원미구",
+      "regionKey": "경기도/부천시/원미구",
+      "primaryCenterId": "gyeonggi-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "부천시",
+      "district": "소사구",
+      "regionKey": "경기도/부천시/소사구",
+      "primaryCenterId": "gyeonggi-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "부천시",
+      "district": "오정구",
+      "regionKey": "경기도/부천시/오정구",
+      "primaryCenterId": "gyeonggi-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "광명시",
+      "district": null,
+      "regionKey": "경기도/광명시",
+      "primaryCenterId": "gyeonggi-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "김포시",
+      "district": null,
+      "regionKey": "경기도/김포시",
+      "primaryCenterId": "gyeonggi-central",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "안산시",
+      "district": "상록구",
+      "regionKey": "경기도/안산시/상록구",
+      "primaryCenterId": "gyeonggi-west",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "안산시",
+      "district": "단원구",
+      "regionKey": "경기도/안산시/단원구",
+      "primaryCenterId": "gyeonggi-west",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "시흥시",
+      "district": null,
+      "regionKey": "경기도/시흥시",
+      "primaryCenterId": "gyeonggi-west",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "화성시",
+      "district": "만세구",
+      "regionKey": "경기도/화성시/만세구",
+      "primaryCenterId": "gyeonggi-west",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "수원시",
+      "district": "장안구",
+      "regionKey": "경기도/수원시/장안구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "수원시",
+      "district": "권선구",
+      "regionKey": "경기도/수원시/권선구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "수원시",
+      "district": "팔달구",
+      "regionKey": "경기도/수원시/팔달구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "수원시",
+      "district": "영통구",
+      "regionKey": "경기도/수원시/영통구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "성남시",
+      "district": "수정구",
+      "regionKey": "경기도/성남시/수정구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "성남시",
+      "district": "중원구",
+      "regionKey": "경기도/성남시/중원구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "성남시",
+      "district": "분당구",
+      "regionKey": "경기도/성남시/분당구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "안양시",
+      "district": "만안구",
+      "regionKey": "경기도/안양시/만안구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "안양시",
+      "district": "동안구",
+      "regionKey": "경기도/안양시/동안구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "용인시",
+      "district": "처인구",
+      "regionKey": "경기도/용인시/처인구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "용인시",
+      "district": "기흥구",
+      "regionKey": "경기도/용인시/기흥구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "용인시",
+      "district": "수지구",
+      "regionKey": "경기도/용인시/수지구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "화성시",
+      "district": "효행구",
+      "regionKey": "경기도/화성시/효행구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "화성시",
+      "district": "병점구",
+      "regionKey": "경기도/화성시/병점구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "화성시",
+      "district": "동탄구",
+      "regionKey": "경기도/화성시/동탄구",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "과천시",
+      "district": null,
+      "regionKey": "경기도/과천시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "의왕시",
+      "district": null,
+      "regionKey": "경기도/의왕시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "군포시",
+      "district": null,
+      "regionKey": "경기도/군포시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "하남시",
+      "district": null,
+      "regionKey": "경기도/하남시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "광주시",
+      "district": null,
+      "regionKey": "경기도/광주시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "오산시",
+      "district": null,
+      "regionKey": "경기도/오산시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [
+        "gyeonggi-child"
+      ],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "평택시",
+      "district": null,
+      "regionKey": "경기도/평택시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "안성시",
+      "district": null,
+      "regionKey": "경기도/안성시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "이천시",
+      "district": null,
+      "regionKey": "경기도/이천시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    },
+    {
+      "province": "경기도",
+      "city": "여주시",
+      "district": null,
+      "regionKey": "경기도/여주시",
+      "primaryCenterId": "gyeonggi-south",
+      "additionalCenterIds": [],
+      "childCenterIds": [],
+      "childAccessibleProvincewide": true,
+      "mappingStatus": "PROPOSED_NOT_DISTANCE_VERIFIED"
+    }
+  ],
+  "citiesCoveredGyeonggi": [
+    "가평군",
+    "고양시",
+    "과천시",
+    "광명시",
+    "광주시",
+    "구리시",
+    "군포시",
+    "김포시",
+    "남양주시",
+    "동두천시",
+    "부천시",
+    "성남시",
+    "수원시",
+    "시흥시",
+    "안산시",
+    "안성시",
+    "안양시",
+    "양주시",
+    "양평군",
+    "여주시",
+    "연천군",
+    "오산시",
+    "용인시",
+    "의왕시",
+    "의정부시",
+    "이천시",
+    "파주시",
+    "평택시",
+    "포천시",
+    "하남시",
+    "화성시"
+  ],
+  "seoulDistrictCount": 25,
+  "gyeonggiCityCountyCount": 31
+}

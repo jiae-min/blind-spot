@@ -56,3 +56,36 @@
 1. GitHub 저장소 → `content/domestic-violence.json` → 연필(✏️ Edit) 아이콘
 2. 고친 뒤 **Commit changes** → 메시지에 무엇을 고쳤는지 적기 (예: `가정폭력 단기: 1366 안내 확인일 갱신`)
 3. 1~2분 뒤 사이트 확인. 반영이 안 되면 Cloudflare Pages → Deployments에서 빌드 기록의 빨간 오류 문구를 확인 (어느 항목·어느 칸이 틀렸는지 한국어로 나와요)
+
+## 질문 화면과 연결하기 (선택 칸, D-039)
+
+단기·장기 페이지의 "어떤 도움을 받고 싶으신가요?"에서 사용자가 고른 항목 **바로 아래**에 원고를 보여 주려면 아래 칸을 채워요.
+비워 두면 그 항목 아래에는 "확인된 제도 정보는 아직 게시 전이에요" 안내만 보여요.
+
+| 칸 | 뜻 | 예 |
+|---|---|---|
+| `helpOptions` | 이 원고를 보여 줄 선택지 ID 목록. 같은 원고를 여러 선택지에 걸어도 돼요 | `["immediate_safety.1", "basic_needs.2"]` |
+| `conditions` | 공식 조건. 사용자의 답과 비교해 **기본 조건 부합 / 추가 확인 필요 / 확인된 조건 불일치** 상태만 붙여요. 원고를 숨기지 않아요 | `{ "regions": ["서울특별시"], "ageMin": 19, "ageMax": 64 }` |
+| `needs` | 이 경로에 필요한 것: `report`(신고), `documents`(서류). "신고할 생각 없음"·"서류 없음"을 고른 사람에게 순서를 뒤로 미루고 안내 문장을 붙여요. 지우지 않아요 | `["report"]` |
+| `institution` · `eligibility` · `access` · `hours` | 기관명 · 대상 · 이용 방법 · 운영시간. 비우면 화면에 "기관 확인 필요" | `"hours": "365일 24시간"` |
+
+**선택지 ID 규칙:** `분야ID.번호`(1부터). 분야ID와 순서는 `src/data/v05/case_questionnaires.json`에 있어요. 단기는 `help_groups`, 장기는 첫 질문 `goals`의 `groups`.
+"아직 어떤 도움이 필요한지 모르겠어요"는 단기 `help.none`, 장기 `goals.none`. 없는 ID를 적으면 빌드 전 검사가 멈춰서 알려 줘요.
+
+예) 가정폭력 단기 '긴급 안전·보호' 첫 항목 "안전한 곳으로 이동하고 싶어요." → `immediate_safety.1`
+
+## 해바라기센터 공식 확인 (`centers/verified.json`)
+
+지역별 센터 연결표(`src/data/v05/center_region_mapping.json`)와 센터 기본 정보(`center_directory.json`)는 **게시 전 재검증 대상**이에요.
+공식 출처로 주소·전화·운영시간을 확인한 센터만 아래처럼 적으면 공개 화면에 이름·번호가 나와요. 적지 않은 센터는 "1366에 연결 요청" 안내로 대신해요.
+
+```json
+{
+  "centers": [
+    { "id": "seoul-north", "checkedAt": "2026-11-10", "sourceUrl": "https://공식-안내-주소", "approvedBy": "운영자" }
+  ]
+}
+```
+
+`id`는 `seoul-central` `seoul-child` `seoul-north` `seoul-south` `seoul-east` `gyeonggi-central` `gyeonggi-northwest` `gyeonggi-south` `gyeonggi-child` `gyeonggi-west` `gyeonggi-northeast` 중 하나예요.
+확인 중 주소·번호가 다르면 `center_directory.json`의 해당 값도 함께 고쳐 주세요.

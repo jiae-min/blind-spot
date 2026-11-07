@@ -2,10 +2,9 @@
 // SCR-E-001 긴급 도움 (D-024) — 112·119·1366은 늘 보이고, 나머지는 분류별 접기/펼치기.
 // 연락처·시간은 운영자 확정 목록(2026-11-06 확인). 열어 본 분류·누른 번호는 저장하거나 보내지 않음.
 import Base from '../../layouts/Base.astro';
-import CallCard from '../../components/wf/CallCard.astro';
+import CallCategories from '../../components/wf/CallCategories.astro';
 import EmergencyTop from '../../components/wf/EmergencyTop.astro';
 import Alternatives from '../../components/wf/Alternatives.astro';
-import { CATEGORIES } from '../../data/emergency';
 import { CASES, href } from '../../data/cases';
 const ready = CASES.filter((c) => c.ready);
 // 맨 위 바로가기: 구역으로 바로 이동
@@ -29,24 +28,7 @@ const JUMPS = [
     <section class="sec tick" id="contacts">
       <h2>상황별 연락처</h2>
       <p class="sub desc">필요한 분류를 눌러 펼쳐 보세요. 여러 개를 함께 열 수 있어요. 지역을 고르지 않아도 전국 연락처를 이용할 수 있어요.</p>
-      <div class="acc" data-acc>
-        {CATEGORIES.map((cat) => (
-          <div class="acc-item">
-            <h3 class="acc-h">
-              <button type="button" class="acc-btn btn-accent" aria-expanded="true" aria-controls={`acc-${cat.id}`} id={`acc-h-${cat.id}`}>
-                <span class="acc-name">{cat.name}</span>
-                <span class="acc-count">연락처 {cat.items.length}곳</span>
-                <span class="acc-state" data-state>접기</span>
-              </button>
-            </h3>
-            <div class="acc-panel" id={`acc-${cat.id}`} role="region" aria-labelledby={`acc-h-${cat.id}`}>
-              <div class="cards">
-                {cat.items.map((s, i) => <CallCard s={s} level="h4" uid={`${cat.id}-${i}`} />)}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <CallCategories />
     </section>
 
     <section class="sec tick" id="no-call">
@@ -75,18 +57,6 @@ const JUMPS = [
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register(href('sw.js')).catch(() => {});
   }
-  // 아코디언: JS가 없으면 모두 펼쳐진 채로 보임. JS가 있으면 처음엔 모두 닫힘, 상태는 저장하지 않음.
-  document.querySelectorAll<HTMLButtonElement>('[data-acc] .acc-btn').forEach((btn) => {
-    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
-    const state = btn.querySelector<HTMLElement>('[data-state]')!;
-    const set = (open: boolean) => {
-      btn.setAttribute('aria-expanded', String(open));
-      panel.hidden = !open;
-      state.textContent = open ? '접기' : '펼치기';
-    };
-    set(false);
-    btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
-  });
 </script>
 
 <style>
@@ -104,22 +74,6 @@ const JUMPS = [
   .lead { margin: 0 0 var(--space-5); }
   .sec h2 { margin-bottom: var(--space-3); }
   .sub { margin: 0 0 var(--space-4); }
-  .acc { border: 1px solid var(--color-text); }
-  .acc-item + .acc-item { border-top: 1px solid var(--color-text); }
-  .acc-h { margin: 0; font-size: inherit; }
-  .acc-btn {
-    display: flex; align-items: center; gap: 8px 16px; width: 100%; min-height: 60px; padding: 10px 18px;
-    border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
-  }
-  .acc-name { font-size: 18px; font-weight: 700; flex: 1 1 auto; }
-  .acc-count { font-size: 14px; white-space: nowrap; }
-  .acc-state { font-size: 14px; font-weight: 700; white-space: nowrap; min-width: 4.5em; text-align: right; }
-  .acc-state::after { content: ' +'; font-family: var(--font-mono); }
-  .acc-btn[aria-expanded='true'] .acc-state::after { content: ' −'; }
-  .acc-panel { padding: var(--space-4); border-top: 1px solid var(--line); background: rgba(123, 158, 137, .06); }
-  .cards { display: grid; gap: var(--space-3); }
-  @media (max-width: 480px) { .acc-panel { padding: var(--space-2); } }
-  @media (min-width: 768px) { .cards { grid-template-columns: 1fr 1fr; } }
   .more { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
   .more a {
     display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 var(--space-4);

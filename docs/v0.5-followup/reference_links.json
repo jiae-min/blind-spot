@@ -1,0 +1,38 @@
+{
+  "base": "대화 전용 후속 변경사항. 이전 v0.5의 자료는 복사·재검증하지 않음.",
+  "official_urls_discussed_not_rechecked_this_turn": [
+    {
+      "topic": "해바라기센터",
+      "url": "https://www.mogef.go.kr/sp/hrp/sp_hrp_f011.do"
+    },
+    {
+      "topic": "가정폭력 지원",
+      "url": "https://www.mogef.go.kr/sp/hrp/sp_hrp_f004.do"
+    },
+    {
+      "topic": "1366",
+      "url": "https://www.mogef.go.kr/sp/hrp/sp_hrp_f002.do"
+    },
+    {
+      "topic": "전국 해바라기센터",
+      "url": "https://www.sunflowercenter.or.kr/"
+    },
+    {
+      "topic": "경기도 해바라기센터",
+      "url": "https://www.gg.go.kr/contents/contents.do?ciIdx=1471&menuId=3301"
+    },
+    {
+      "topic": "세계보건기구 임상 지침",
+      "url": "https://www.who.int/publications/i/item/WHO-RHR-14.26"
+    },
+    {
+      "topic": "디지털 안전 안내",
+      "url": "https://www.thehotline.org/plan-for-safety/internet-safety/"
+    },
+    {
+      "topic": "웹 지연 로딩",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Lazy_loading"
+    }
+  ],
+  "verificationPolicy": "외부 URL이 대화 중 언급되었다는 사실만 기록. 이 패키지 생성 시 새로 열람해 최신성을 검증한 것은 아님."
+}

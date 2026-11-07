@@ -1,6 +1,7 @@
 ---
 // SCR-G-001 일반 단기·장기 상세 (와이어프레임)
-// 순서(2.3 §6): 우선 행동 → 조건 선택 → 승인 결과 → 단계 → 체크리스트 → FAQ → 단기↔장기 → 근거·정정
+// 순서(2.3 §6 → D-039 v0.5 후속): 우선 행동 → 질문(지원 목표 → 케이스별 조건 질문, 고른 항목 아래 결과·타임라인)
+//   → 승인 결과 → 단계 → 체크리스트 → FAQ → 긴급 연락처와 도움말 → 단기↔장기 → 근거·정정
 // 폭력 관련 케이스의 장기 경로도 이 틀을 쓰되, 체크 상태를 저장하지 않음(sensitive).
 import Slot from '../wf/Slot.astro';
 import Choice from '../wf/Choice.astro';
@@ -11,6 +12,8 @@ import Checklist from '../wf/Checklist.astro';
 import Faq from '../wf/Faq.astro';
 import GuideCard from '../wf/GuideCard.astro';
 import Region from '../wf/Region.astro';
+import Questionnaire from '../flow/Questionnaire.astro';
+import ContactsHelp from '../flow/ContactsHelp.astro';
 import { contentFor } from '../../data/content';
 import { COPY, HORIZONS, href, type CaseDef } from '../../data/cases';
 
@@ -22,6 +25,9 @@ const guides = contentFor(c.id, h.id, 'guide');
 const faqs = contentFor(c.id, h.id, 'faq');
 const hasDrafts = [...guides, ...faqs].some((i) => i.draft);
 const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: `b${n}`, label: '[선택지 B]' }];
+const violence = c.id === 'domestic-violence' || c.id === 'sexual-violence';
+// 이전 와이어프레임의 조건 선택 자리([조건 항목 1·2])는 v0.5 후속 질문으로 바뀜. 지우지 않고 끔 (D-039)
+const LEGACY_CONDITIONS = false;
 ---
 <div class="wrap page">
   {/* 구역마다 가는 선 상자 + 모서리 사각형 (.sec .tick) */}
@@ -50,11 +56,13 @@ const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: 
   </section>
 
   <div class="sec tick">
-  <Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
+  <h2 class="flow-h">{h.id === 'short-term' ? '지금 필요한 도움 찾기' : '앞으로 필요한 도움 찾기'}</h2>
+  <Questionnaire c={c} h={h.id} />
+  {LEGACY_CONDITIONS && <Conditions mode="general" title="해당하는 조건만 골라 주세요" intro="고르지 않아도 안내는 그대로 볼 수 있어요. 고른 내용은 이 화면에서만 쓰고 저장하거나 보내지 않아요.">
     <Region name={`${c.id}-${h.id}-region`} legend="어느 지역에 계신가요?" />
     <Choice name={`${c.id}-${h.id}-c1`} legend="[조건 항목 1]" options={ab(1)} hint="[조건 설명 자리 — 자료 확정 후]" />
     <Choice name={`${c.id}-${h.id}-c2`} legend="[조건 항목 2]" options={ab(2)} />
-  </Conditions>
+  </Conditions>}
   </div>
 
   <section class="sec tick">
@@ -73,10 +81,13 @@ const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: 
     )}
   </section>
 
-  <section class="sec tick">
-    <h2>가까운 기관</h2>
-    <CenterList caseId={c.id} />
-  </section>
+  {/* 폭력 케이스는 아래 '긴급 연락처와 도움말'의 지역 연결 센터로 대신함 */}
+  {!violence && (
+    <section class="sec tick">
+      <h2>가까운 기관</h2>
+      <CenterList caseId={c.id} />
+    </section>
+  )}
 
   <section class="sec tick">
     <h2>단계별로 하면 좋아요</h2>
@@ -100,6 +111,8 @@ const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: 
     <Faq items={faqs} />
   </section>
 
+  <ContactsHelp c={c} horizon={h.id} />
+
   <a class="cross btn-accent sec-after" href={href(`cases/${c.id}/${other.id}/`)}>
     <span>{other.sub}</span>
     <strong>{other.title} 보기 →</strong>
@@ -117,6 +130,7 @@ const ab = (n: number) => [{ value: `a${n}`, label: '[선택지 A]' }, { value: 
   .state--draft { border-left-color: var(--color-accent-text) !important; }
   .state { border-left: 4px solid var(--color-text); padding: 12px 16px; margin: 0 0 var(--space-5); background: #fff; }
   .page :global(.conds) { margin: 0; }
+  .flow-h { margin-bottom: var(--space-4); }
   .sec > h2 { margin-bottom: var(--space-5); }
   .sec .cards { margin-bottom: var(--space-4); }
   .first { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; font-weight: 700; }

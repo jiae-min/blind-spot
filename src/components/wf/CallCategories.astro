@@ -1,0 +1,61 @@
+---
+// 상황별 연락처 아코디언 (긴급 도움 페이지 · 상세 페이지 '긴급 연락처와 도움말' 공용)
+// JS가 없으면 모두 펼쳐진 채로 보임. JS가 있으면 처음엔 모두 닫힘, 열고 닫은 상태는 저장하지 않음.
+import CallCard from './CallCard.astro';
+import { CATEGORIES } from '../../data/emergency';
+interface Props { ids?: string[]; prefix?: string }
+const { ids, prefix = '' } = Astro.props;
+const cats = ids ? ids.map((id) => CATEGORIES.find((c) => c.id === id)!).filter(Boolean) : CATEGORIES;
+const p = prefix ? `${prefix}-` : '';
+---
+<div class="acc" data-acc>
+  {cats.map((cat) => (
+    <div class="acc-item">
+      <h3 class="acc-h">
+        <button type="button" class="acc-btn btn-accent" aria-expanded="true" aria-controls={`${p}acc-${cat.id}`} id={`${p}acc-h-${cat.id}`}>
+          <span class="acc-name">{cat.name}</span>
+          <span class="acc-count">연락처 {cat.items.length}곳</span>
+          <span class="acc-state" data-state>접기</span>
+        </button>
+      </h3>
+      <div class="acc-panel" id={`${p}acc-${cat.id}`} role="region" aria-labelledby={`${p}acc-h-${cat.id}`}>
+        <div class="cards">
+          {cat.items.map((s, i) => <CallCard s={s} level="h4" uid={`${p}${cat.id}-${i}`} />)}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-acc] .acc-btn').forEach((btn) => {
+    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
+    const state = btn.querySelector<HTMLElement>('[data-state]')!;
+    const set = (open: boolean) => {
+      btn.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      state.textContent = open ? '접기' : '펼치기';
+    };
+    set(false);
+    btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+  });
+</script>
+
+<style>
+  .acc { border: 1px solid var(--color-text); }
+  .acc-item + .acc-item { border-top: 1px solid var(--color-text); }
+  .acc-h { margin: 0; font-size: inherit; }
+  .acc-btn {
+    display: flex; align-items: center; gap: 8px 16px; width: 100%; min-height: 60px; padding: 10px 18px;
+    border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  }
+  .acc-name { font-size: 18px; font-weight: 700; flex: 1 1 auto; }
+  .acc-count { font-size: 14px; white-space: nowrap; }
+  .acc-state { font-size: 14px; font-weight: 700; white-space: nowrap; min-width: 4.5em; text-align: right; }
+  .acc-state::after { content: ' +'; font-family: var(--font-mono); }
+  .acc-btn[aria-expanded='true'] .acc-state::after { content: ' −'; }
+  .acc-panel { padding: var(--space-4); border-top: 1px solid var(--line); background: rgba(123, 158, 137, .06); }
+  .cards { display: grid; gap: var(--space-3); }
+  @media (max-width: 480px) { .acc-panel { padding: var(--space-2); } }
+  @media (min-width: 768px) { .cards { grid-template-columns: 1fr 1fr; } }
+</style>

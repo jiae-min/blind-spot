@@ -77,8 +77,9 @@ export function flowFor(c: CaseId, h: Horizon): Flow | null {
 }
 
 /** 위험 응답 → 바로 연결할 긴급번호 (서비스 편집 제안: 즉시 안전·구조 경로 먼저) */
-export const DANGER: Record<string, { tel: string; label: string }> = {
-  'risk.1': { tel: '112', label: '지금 위험하다면 112에 바로 연락하세요.' },
+/** go: 고르는 즉시 이동할 페이지 (운영자 확정 2026-11-07: 가정폭력 단기 '지금 위험하거나 위협받고 있어요' → 긴급 도움) */
+export const DANGER: Record<string, { tel: string; label: string; go?: string }> = {
+  'risk.1': { tel: '112', label: '지금 위험하다면 112에 바로 연락하세요.', go: 'help/' },
   'urgent_status.1': { tel: '112', label: '지금 위험하다면 112에 바로 연락하세요.' },
   'urgent_care.1': { tel: '119', label: '응급상황이라면 119에 바로 연락하세요.' },
 };

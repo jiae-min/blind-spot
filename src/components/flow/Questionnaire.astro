@@ -98,11 +98,13 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
                   type={q.type === 'multi' ? 'checkbox' : 'radio'} withUnknown={false}
                   options={asChoice(q)} {...cols(q.options)} />
           {q.options.filter((o) => DANGER[o.id]).map((o) => (
-            <p class="danger" data-danger-for={o.id} hidden>
+            <p class="danger" data-danger-for={o.id} data-go={DANGER[o.id].go ? href(DANGER[o.id].go!) : undefined} hidden>
               <span class="danger-t">{DANGER[o.id].label}</span>
               <span class="danger-acts">
                 <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
-                <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+                {DANGER[o.id].go
+                  ? <a class="more" href={href(DANGER[o.id].go!)}>긴급 도움 페이지로 →</a>
+                  : <a class="more" href="#contacts">다른 연락처 보기 ↓</a>}
               </span>
             </p>
           ))}
@@ -222,6 +224,17 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
     };
 
     flow.addEventListener('change', update);
+    // 위험 응답 중 이동 대상이 있는 답(가정폭력 단기 '지금 위험해요') → 고르는 즉시 긴급 도움 페이지로
+    // 방향키로 선택지를 훑다가 지나가는 경우는 이동하지 않고, 위의 112 안내와 링크만 보여 줌
+    let arrowNav = false;
+    flow.addEventListener('keydown', (e) => { arrowNav = e.key.startsWith('Arrow'); }, true);
+    flow.addEventListener('pointerdown', () => { arrowNav = false; }, true);
+    flow.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.type !== 'radio' || !t.checked || arrowNav) return;
+      const go = flow.querySelector<HTMLElement>(`[data-danger-for="${t.value}"]`)?.dataset.go;
+      if (go) location.assign(go);
+    });
     flow.addEventListener('input', (e) => { if ((e.target as HTMLElement).matches('[data-age]')) update(); });
     flow.addEventListener('bs-region', update);
     const reset = () => {

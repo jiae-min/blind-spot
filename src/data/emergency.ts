@@ -47,6 +47,7 @@ export interface Service {
   hours: Hours[];
   notes?: string[];  // 반드시 함께 표시할 조건
   areaCode?: boolean; // 휴대전화는 지역번호 + 번호 (1388)
+  region?: '서울' | '경기'; // 제목 앞 지역 상자
 }
 
 const phone = (t: string | string[], kind: Hours['kind'] = 'counsel'): Hours => {
@@ -72,8 +73,8 @@ export const CATEGORIES: { id: string; name: string; items: Service[] }[] = [
     id: 'sexual', name: '성폭력·디지털성범죄', items: [
       { title: '성폭력 피해로 어디에 도움을 요청할지 모르겠어요', org: '1366', hours: [phone('365일 24시간')] },
       { title: '불법촬영·유포·딥페이크 피해가 있어요', org: 'd4u', hours: [phone(['평일 08:00~22:00', '주말·공휴일 09:00~18:00'])], notes: ['상담시간 외에는 여성긴급전화 1366으로 연락해 주세요.'] },
-      { title: '서울의 디지털성범죄 지원기관에 연락하고 싶어요', org: 'seoulDigital', hours: [phone(['평일 09:00~18:00', '점심 12:00~13:00 제외'])] },
-      { title: '경기의 디지털성범죄 지원기관에 연락하고 싶어요', org: 'ggDigital', hours: [phone(['평일 09:00~18:00', '점심 12:00~13:00 제외'])] },
+      { title: '디지털성범죄 지원기관에 연락하고 싶어요', region: '서울', org: 'seoulDigital', hours: [phone(['평일 09:00~18:00', '점심 12:00~13:00 제외'])] },
+      { title: '디지털성범죄 지원기관에 연락하고 싶어요', region: '경기', org: 'ggDigital', hours: [phone(['평일 09:00~18:00', '점심 12:00~13:00 제외'])] },
     ],
   },
   {

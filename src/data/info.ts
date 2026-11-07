@@ -16,7 +16,7 @@ export interface InfoSection {
   icon?: 'eye' | 'home' | 'route'; // 제목 앞 아이콘 (서비스 소개)
   mail?: boolean;     // 메일 문의 양식 블록 (정보 정정·문의)
   link?: { label: string; to: string }; // 구역 끝 바로가기
-  items?: string[];   // 짧은 문장 목록
+  items?: (string | { term: string; text: string })[]; // 짧은 문장 목록. term이 있으면 '굵은 머리말: 설명'
   text?: string;      // 한 문단
   slot?: { label: string; note?: string }; // 아직 정해지지 않은 자리
 }
@@ -48,20 +48,13 @@ export const INFO_PAGES: InfoPage[] = [
         ],
       },
       {
-        heading: '시크릿 모드(비공개 창)',
-        text: '시크릿 모드를 써도 검색엔진에는 기록이 남을 수 있어요.',
-      },
-      {
-        heading: '방문 기록 지우기',
-        text: '기록을 통째로 지우면 오히려 의심받을 수 있어요.',
-      },
-      {
-        heading: '더 안전한 기기',
-        text: '가능하면 도서관이나 믿을 수 있는 지인의 기기를 쓰는 게 더 안전해요.',
-      },
-      {
-        heading: '전화했을 때',
-        text: '전화하면 통화기록이 남아요. 기록을 지울지 미리 생각해 봐 주세요.',
+        heading: '기록이 걱정된다면',
+        items: [
+          { term: '시크릿 모드(비공개 창)', text: '시크릿 모드를 써도 검색엔진에는 기록이 남을 수 있어요.' },
+          { term: '방문 기록 지우기', text: '기록을 통째로 지우면 오히려 의심받을 수 있어요.' },
+          { term: '더 안전한 기기', text: '가능하면 도서관이나 믿을 수 있는 지인의 기기를 쓰는 게 더 안전해요.' },
+          { term: '전화했을 때', text: '전화하면 통화기록이 남아요. 기록을 지울지 미리 생각해 봐 주세요.' },
+        ],
       },
       {
         heading: '이 사이트가 기기에 남기는 것',

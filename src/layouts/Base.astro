@@ -21,9 +21,10 @@ const pageTitle = sensitive ? NEUTRAL_TITLE : `${title} | blind spot`;
 const metaDesc = sensitive ? '필요한 도움을 안내해요.' : description;
 // 빠르게 나가기 이동처 (D-007, 임시)
 const EXIT_URL = 'https://www.naver.com/';
-// 푸터 링크 묶음 (칸마다 작은 영문 머리말)
+// 푸터 링크 묶음 (칸마다 작은 영문 머리말). 칸마다 2개씩 — 소개 둘은 로고 칸 아래로
+const BRAND_LINKS = ['about', 'safe-browsing'];
 const FOOT_GROUPS = [
-  { head: 'About', title: '서비스 정보', ids: ['about', 'safe-browsing', 'verification', 'corrections'] },
+  { head: 'About', title: '서비스 정보', ids: ['verification', 'corrections'] },
   { head: 'Contact', title: '문의', ids: ['contact'] },
   { head: 'Legal', title: '약관·개인정보', ids: ['privacy', 'terms'] },
 ];
@@ -106,9 +107,15 @@ const FOOT_GROUPS = [
     {/* 푸터: 가는 선으로 나뉜 칸 (heronaiapp.com 방식) */}
     <footer class="site-footer">
       <div class="foot-grid">
-        <div class="foot-cell foot-brand">
+        <nav class="foot-cell foot-brand" aria-label="서비스 소개">
           <p class="foot-logo"><svg class="logo-text" viewBox={`0 0 ${LOGO.w} ${LOGO.h}`} role="img" aria-label="blind spot"><use href="#logo-glyphs" /></svg></p>
-        </div>
+          <ul>
+            {BRAND_LINKS.map((id) => {
+              const p = INFO_PAGES.find((x) => x.id === id)!;
+              return <li><a class="foot-link btn-accent" href={href(`${p.id}/`)}>{p.title} <span class="arrow" aria-hidden="true">→</span></a></li>;
+            })}
+          </ul>
+        </nav>
         {FOOT_GROUPS.map((g) => (
           <nav class="foot-cell" aria-label={g.title}>
             <p class="foot-head mono">{g.head}</p>

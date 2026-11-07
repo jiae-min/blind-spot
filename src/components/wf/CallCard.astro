@@ -11,7 +11,7 @@ const H = level;
 const qh = quickHours(s);
 ---
 <article class="call-card">
-  <H class="c-title">{s.title}</H>
+  <H class="c-title">{s.region && <><span class="region">{s.region}</span> </>}{s.title}</H>
   <p class="c-org">
     {o.region && <span class="region">{o.region}</span>}
     <span>{o.name}</span>
@@ -32,13 +32,16 @@ const qh = quickHours(s);
       {qh.allDay && <span class="when">{qh.text}</span>}
     </div>
     <div class="acts">
-      {!s.areaCode && o.tel && (
+      {s.areaCode ? (
+        <a class="call btn-accent" href={telHref(o.number)} aria-label={`${o.name} ${o.number} 유선전화로 전화하기`}>☎ 유선전화</a>
+      ) : o.tel && (
         <a class="call btn-accent" href={telHref(o.tel)} aria-label={`${o.name} ${o.number} 전화하기`}>☎ 전화하기</a>
       )}
       <button type="button" class="copy btn-accent" data-copy-num={o.number}>번호 복사</button>
     </div>
   </div>
 
+  {/* 1388: 위 줄 = 유선전화, 아래 줄 = 왼쪽 안내 · 오른쪽 지역번호 + 휴대전화 */}
   {s.areaCode && (
     <div class="area" data-area={o.number}>
       <label for={`area-${uid}`}>휴대전화는 지역번호를 골라 주세요</label>
@@ -49,7 +52,6 @@ const qh = quickHours(s);
         </select>
         <a class="call btn-accent" data-area-call aria-disabled="true">☎ 휴대전화로 전화하기</a>
       </div>
-      <a class="call ghost btn-accent" href={telHref(o.number)}>☎ 유선전화로 전화하기</a>
     </div>
   )}
   <p class="done" data-done aria-live="polite"></p>
@@ -60,6 +62,7 @@ const qh = quickHours(s);
   /* 카드 너비에 맞춰 글자·버튼을 줄임(cqi = 카드 너비의 1%). 어떤 글자도 14px 밑으로는 줄이지 않음 */
   .call-card { container-type: inline-size; border: 1px solid var(--line); background: #fff; padding: var(--space-4); display: flex; flex-direction: column; }
   .c-title { font-size: 20px; line-height: 1.35; margin: 0 0 var(--space-1); }
+  .c-title .region { vertical-align: 2px; }
   .c-org { margin: 0 0 var(--space-3); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 17px; }
   .region { font-size: 15px; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
   /* 카드 본문 17px (D-030): 기관명·조건·전화 가능 시간 제목과 항목 모두 같은 크기 */
@@ -75,7 +78,8 @@ const qh = quickHours(s);
   }
   .num-block { display: flex; flex-direction: column; min-width: 0; }
   .num { font-size: clamp(18px, 7.5cqi, 24px); line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }
-  .when { font-size: 16px; line-height: 1.4; font-weight: 700; color: var(--color-brand-secondary-strong); }
+  /* 번호 아래 보조 문구: 번호보다 확실히 작고 가볍게 (사이트 최소 14px) */
+  .when { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--color-brand-secondary-strong); }
   .acts { display: flex; align-items: center; gap: 6px; flex: none; }
   .call {
     display: inline-flex; align-items: center; justify-content: center; min-height: 48px; white-space: nowrap;
@@ -83,7 +87,6 @@ const qh = quickHours(s);
     text-decoration: none; font-weight: 700;
     background: var(--color-emergency); color: var(--color-on-strong); border: 1px solid var(--color-emergency);
   }
-  .call.ghost { background: none; color: inherit; border-color: var(--color-text); }
   .call[aria-disabled='true'] { opacity: .45; pointer-events: none; }
   .copy {
     min-height: 48px; padding: 0 clamp(10px, 3.5cqi, 16px); font-size: clamp(14px, 4.2cqi, 16px); white-space: nowrap;
@@ -94,8 +97,8 @@ const qh = quickHours(s);
   .done { margin: 4px 0 0; font-size: 15px; font-weight: 700; text-align: right; }
   .done:empty { display: none; }
 
-  .area { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-top: var(--space-3); }
-  .area label { font-size: 17px; font-weight: 700; }
+  .area { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--line); }
+  .area label { flex: 1 1 10em; font-size: 17px; font-weight: 700; }
   .area-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
   .area select { min-height: 48px; padding: 0 12px; font: inherit; font-size: 17px; border: 1px solid var(--color-text); border-radius: 0; background: #fff; color: inherit; }
 </style>

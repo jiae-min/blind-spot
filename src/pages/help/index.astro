@@ -8,16 +8,25 @@ import Alternatives from '../../components/wf/Alternatives.astro';
 import { CATEGORIES } from '../../data/emergency';
 import { CASES, href } from '../../data/cases';
 const ready = CASES.filter((c) => c.ready);
+// 맨 위 바로가기: 구역으로 바로 이동
+const JUMPS = [
+  { id: 'urgent', label: '긴급 도움' },
+  { id: 'contacts', label: '상황별 연락처' },
+  { id: 'no-call', label: '전화가 어려울 때' },
+];
 ---
 <Base title="긴급 도움" sensitive>
   <div class="wrap page">
-    <section class="sec tick opening">
+    <nav class="jumps" aria-label="이 페이지 바로가기">
+      {JUMPS.map((j) => <a class="btn-accent" href={`#${j.id}`}>{j.label} <span class="arrow" aria-hidden="true">↓</span></a>)}
+    </nav>
+    <section class="sec tick opening" id="urgent">
       <h1>긴급 도움</h1>
       <p class="lead desc">지금 필요한 도움을 선택해 주세요. 전화번호마다 연결 가능한 시간을 함께 안내해요.</p>
       <EmergencyTop />
     </section>
 
-    <section class="sec tick">
+    <section class="sec tick" id="contacts">
       <h2>상황별 연락처</h2>
       <p class="sub desc">필요한 분류를 눌러 펼쳐 보세요. 여러 개를 함께 열 수 있어요. 지역을 고르지 않아도 전국 연락처를 이용할 수 있어요.</p>
       <div class="acc" data-acc>
@@ -40,7 +49,7 @@ const ready = CASES.filter((c) => c.ready);
       </div>
     </section>
 
-    <section class="sec tick">
+    <section class="sec tick" id="no-call">
       <h2>전화가 어려울 때</h2>
       <Alternatives />
     </section>
@@ -82,6 +91,16 @@ const ready = CASES.filter((c) => c.ready);
 
 <style>
   .page { padding-top: var(--space-6); max-width: 1080px; }
+  /* 맨 위 바로가기 3개 한 줄 (아래 '상황별로 더 보기'와 같은 테두리 버튼) */
+  .jumps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: var(--space-5); }
+  .jumps a {
+    display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 56px; padding: 6px 10px; text-align: center;
+    border: 1px solid var(--color-text); font-weight: 700; text-decoration: none;
+  }
+  .jumps .arrow { font-family: var(--font-mono); }
+  @media (max-width: 420px) { .jumps a { font-size: 15px; padding: 6px; } .jumps .arrow { display: none; } }
+  /* 고정 헤더(56px)에 가리지 않게 */
+  .sec[id] { scroll-margin-top: 72px; }
   .lead { margin: 0 0 var(--space-5); }
   .sec h2 { margin-bottom: var(--space-3); }
   .sub { margin: 0 0 var(--space-4); }

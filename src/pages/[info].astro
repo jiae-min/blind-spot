@@ -40,7 +40,7 @@ const ICONS: Record<string, string> = {
           </div>
         ) : <h2>{s.heading}</h2>}
         {s.text && <p>{s.text}</p>}
-        {s.items && <ul class="points">{s.items.map((i) => <li>{i}</li>)}</ul>}
+        {s.items && <ul class="points">{s.items.map((i) => <li>{typeof i === 'string' ? i : <><strong>{i.term}</strong>: {i.text}</>}</li>)}</ul>}
         {s.mail && <MailForm />}
         {s.slot && <Slot as="div" label={s.slot.label} note={s.slot.note} />}
         {s.link && <a class="more btn-accent" href={href(s.link.to)}>{s.link.label} <span class="arrow" aria-hidden="true">→</span></a>}

@@ -7,20 +7,23 @@ import { SEOUL, GYEONGGI } from '../../data/centers';
 interface Props { qid: string; title: string; current?: boolean; uid: string }
 const { qid, title, current = false, uid } = Astro.props;
 const opt = (list: string[]) => list.map((v) => ({ value: v, label: v }));
+// 하위 단계마다 맨 위에 '몰라요' (점선 상자) — 고르면 그 시·도(또는 시)에 연결해 둔 센터를 모두 보여 줌 (D-043)
+const UNKNOWN = { value: '__unknown', label: '몰라요', soft: true, exclusive: false };
+const withUnknown = (list: string[]) => [UNKNOWN, ...opt(list)];
 const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이에요. ' : ''}고르지 않아도 안내는 그대로 볼 수 있어요. 고른 지역을 다시 누르면 선택이 풀려요. 위치 정보(GPS)는 쓰지 않아요.`;
 ---
 <div class="region" data-q={qid} data-region-root>
   <Choice name={`${uid}-sido`} legend={title} hint={hint} withUnknown={false} cols={2} colsM={2}
           options={[{ value: '서울특별시', label: '서울' }, { value: '경기도', label: '경기' }]} />
   <div class="sub" data-sub="서울특별시" hidden>
-    <Choice name={`${uid}-seoul`} legend="서울 어느 구에 계신가요?" srLegend withUnknown={false} options={opt(SEOUL)} />
+    <Choice name={`${uid}-seoul`} legend="서울 어느 구에 계신가요?" srLegend withUnknown={false} softFirst options={withUnknown(SEOUL)} cols={5} colsM={3} />
   </div>
   <div class="sub" data-sub="경기도" hidden>
-    <Choice name={`${uid}-gg`} legend="경기도 어느 시·군에 계신가요?" srLegend withUnknown={false} options={opt(GYEONGGI.map((g) => g.city))} />
+    <Choice name={`${uid}-gg`} legend="경기도 어느 시·군에 계신가요?" srLegend withUnknown={false} softFirst options={withUnknown(GYEONGGI.map((g) => g.city))} cols={5} colsM={3} />
   </div>
   {GYEONGGI.filter((g) => g.districts.length).map((g) => (
     <div class="sub sub--dist" data-dist={g.city} hidden>
-      <Choice name={`${uid}-gg-${g.city}`} legend={`${g.city} 어느 구에 계신가요?`} srLegend withUnknown={false} options={opt(g.districts)} cols={Math.min(4, g.districts.length)} />
+      <Choice name={`${uid}-gg-${g.city}`} legend={`${g.city} 어느 구에 계신가요?`} srLegend withUnknown={false} softFirst options={withUnknown(g.districts)} cols={Math.min(4, g.districts.length)} colsM={Math.min(3, g.districts.length)} />
     </div>
   ))}
 </div>
@@ -39,12 +42,17 @@ const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이
         if (!show) clear(b);
         b.hidden = !show;
       });
+      // 연결표 키. '몰라요'면 끝이 '/*'인 범위 키 (예: 서울특별시/*, 경기도/*, 경기도/고양시/*)
+      const U = '__unknown';
       let key = '';
-      if (s === '서울특별시' && val(seoulName)) key = `서울특별시/서울특별시/${val(seoulName)}`;
+      if (s === '서울특별시' && val(seoulName)) key = val(seoulName) === U ? '서울특별시/*' : `서울특별시/서울특별시/${val(seoulName)}`;
       if (s === '경기도' && city) {
-        const dist = root.querySelector<HTMLElement>(`[data-dist="${city}"]`);
-        const d = dist ? dist.querySelector<HTMLInputElement>('input:checked')?.value : '';
-        key = dist ? (d ? `경기도/${city}/${d}` : '') : `경기도/${city}`;
+        if (city === U) key = '경기도/*';
+        else {
+          const dist = root.querySelector<HTMLElement>(`[data-dist="${city}"]`);
+          const d = dist ? dist.querySelector<HTMLInputElement>('input:checked')?.value : '';
+          key = dist ? (d === U ? `경기도/${city}/*` : d ? `경기도/${city}/${d}` : '') : `경기도/${city}`;
+        }
       }
       root.dataset.pickedSido = s;
       root.dataset.pickedKey = key;
@@ -57,8 +65,8 @@ const hint = `${current ? '주민등록 주소가 아니라 지금 계신 곳이
 </script>
 
 <style>
-  /* 하위 단계: 바로 아래 옅은 바탕에 버튼만 (기존 지역 질문과 같은 모양) */
+  /* 하위 단계: 위 서울·경기 버튼과 같은 폭, 바탕색 없이 바로 아래에 (D-043) */
   .region :global(.choice) { margin-bottom: 0; }
-  .sub { margin-top: var(--space-3); padding: var(--space-4); background: rgba(123, 158, 137, .08); }
+  .sub { margin-top: var(--space-3); }
   .sub[hidden] { display: none; }
 </style>

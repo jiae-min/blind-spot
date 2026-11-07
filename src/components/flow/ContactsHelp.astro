@@ -45,7 +45,7 @@ const p = `${c.id}-${horizon}`;
     </div>
     <div data-ch-part>
       <p class="desc ch-lead">지금 바로 연락할 수 있는 곳이에요. 신고하지 않아도 상담부터 받을 수 있는 곳도 있어요.</p>
-      <EmergencyTop prefix={`${p}-top`} />
+      <EmergencyTop prefix={`${p}-top`} copy={false} />
     </div>
   </section>
 
@@ -61,7 +61,7 @@ const p = `${c.id}-${horizon}`;
     <section class="sec tick">
       <h2>상황별 연락처</h2>
       <p class="desc sub">필요한 분류를 눌러 펼쳐 보세요. 여러 개를 함께 열 수 있어요.</p>
-      <CallCategories ids={CATS[c.id]} prefix={p} />
+      <CallCategories ids={CATS[c.id]} prefix={p} copy={false} />
       <p class="more"><a href={href('help/#contacts')}>모든 상황별 연락처 보기 →</a></p>
     </section>
 

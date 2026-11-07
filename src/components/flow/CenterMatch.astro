@@ -18,6 +18,7 @@ const shown = CENTERS.filter(showable);
 
   <div data-cm-result hidden>
     <h3 class="cm-h">이 지역에 연결해 둔 센터</h3>
+    <p class="cm-sub" data-cm-wide hidden>구·시·군을 모를 때는 이 지역에 연결해 둔 센터를 모두 보여 드려요. 전화로 어느 센터가 가까운지 먼저 물어보세요.</p>
     <div class="cm-list" data-slot="p"></div>
     <div data-wrap="a" hidden>
       <h3 class="cm-h">함께 확인해 볼 수 있는 센터</h3>
@@ -65,8 +66,18 @@ const shown = CENTERS.filter(showable);
     const state = (s: string) => box.querySelectorAll<HTMLElement>('[data-cm-state]').forEach((p) => (p.hidden = p.dataset.cmState !== s));
     const result = box.querySelector<HTMLElement>('[data-cm-result]')!;
     const pending = box.querySelector<HTMLElement>('[data-cm-pending]')!;
+    const wideNote = box.querySelector<HTMLElement>('[data-cm-wide]')!;
+    // '몰라요'(키 끝 '/*'): 그 범위에 연결된 줄을 모두 모아 기본 센터 묶음으로. 접경 추가 후보는 구를 알아야 해서 넣지 않음
+    const rowFor = (key: string) => {
+      if (!key.endsWith('/*')) { const r = table[key]; return r ? { p: [r.p], a: r.a, c: r.c } : undefined; }
+      const pre = key.slice(0, -1);
+      const rows = Object.entries(table).filter(([k]) => k.startsWith(pre)).map(([, r]) => r);
+      if (!rows.length) return undefined;
+      return { p: [...new Set(rows.map((r) => r.p))], a: [] as string[], c: [...new Set(rows.flatMap((r) => r.c))] };
+    };
     const render = (sido: string, key: string) => {
-      const row = key ? table[key] : undefined;
+      const row = key ? rowFor(key) : undefined;
+      wideNote.hidden = !key.endsWith('/*');
       result.hidden = !row;
       if (!row) { state(!sido ? 'none' : (sido === '서울특별시' || sido === '경기도') ? 'partial' : 'other'); return; }
       state('');
@@ -84,7 +95,7 @@ const shown = CENTERS.filter(showable);
         ids.forEach((id) => { const c = card(id); if (c) { el.append(c); n++; } else missing++; });
         return n;
       };
-      fill('p', [row.p]);
+      fill('p', row.p);
       const na = fill('a', add);
       box.querySelector<HTMLElement>('[data-wrap="a"]')!.hidden = na === 0;
       const cw = box.querySelector<HTMLElement>('[data-wrap="c"]');
@@ -99,7 +110,7 @@ const shown = CENTERS.filter(showable);
 
 <style>
   .cm-hint, .cm-sub, .cm-note, .cm-pending { font-size: 15px; margin: 0 0 var(--space-3); }
-  .cm-hint[hidden], [data-wrap][hidden], [data-cm-result][hidden], .cm-pending[hidden] { display: none; }
+  .cm-hint[hidden], [data-wrap][hidden], [data-cm-result][hidden], .cm-pending[hidden], .cm-sub[hidden] { display: none; }
   .cm-pending { padding: 10px 12px; background: rgba(123, 158, 137, .12); font-weight: 600; }
   .cm-note { margin-top: var(--space-3); color: rgba(51, 56, 35, .85); }
   .cm-h { font-size: 18px; margin: var(--space-4) 0 var(--space-2); }

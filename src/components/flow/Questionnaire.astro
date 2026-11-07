@@ -27,7 +27,9 @@ const cols = (opts: Opt[]) => {
   const m = Math.max(...opts.map((o) => o.label.length)), n = opts.length;
   return m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
 };
-const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive }));
+// 답을 보류하는 선택지(답하지 않을래요·선택하지 않을래요·모르겠어요·무응답 등)는 점선 상자로 따로 (D-043)
+const SOFT = /답하지 않|선택하지 않|고르지 않|무응답|모르겠|^모름$/;
+const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive, soft: SOFT.test(o.label) }));
 ---
 <div class="flow sec-group" data-flow data-flags={JSON.stringify(flags)}>
   <section class="sec tick">
@@ -74,13 +76,13 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
               </details>
             ))}
           </div>
-          <div class="opts opts--help" style="--cols:1;--cols-m:1">
+          <div class="opts opts--help opts--soft" style="--cols:1;--cols-m:1">
             {q.options.map((o) => (
               <>
                 <label class="opt opt--soft"><input type="checkbox" value={o.id} data-opt data-exclusive autocomplete="off" /><span>{o.label}</span></label>
-                <div class="res res--edge" data-res hidden>
+                <div class="res" data-res hidden>
                   <p class="empty">괜찮아요. 어떤 도움이 맞을지 상담기관과 함께 정리할 수 있어요.</p>
-                  <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" />
+                  <CallCard s={guideCall} uid={`${uid}-guide`} level="h4" copy={false} />
                 </div>
               </>
             ))}
@@ -267,7 +269,8 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
   .opts--help :global(.opt span) { justify-content: flex-start; text-align: left; padding: 10px 18px; }
   /* 고른 항목 바로 아래 결과 (격자 한 줄 전체) */
   .res { grid-column: 1 / -1; padding: var(--space-4); border-bottom: 1px solid var(--color-text); background: rgba(123, 158, 137, .08); }
-  .res--edge { border-right: 1px solid var(--color-text); }
+  .opts--help.opts--soft { gap: 0; }
+  .opts--soft .res { border: 1px dotted var(--color-soft); border-top: 0; }
   .res[hidden] { display: none; }
   .empty { margin: 0 0 var(--space-2); font-size: 15px; }
   .age { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }

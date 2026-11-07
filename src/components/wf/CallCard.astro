@@ -4,8 +4,8 @@
 // 전화 버튼은 tel: 링크(기기의 전화 앱만 열림, 자동 통화 없음). PC용 번호 복사.
 import { AREA_CODES, ORGS, quickHours, telHref, type Service } from '../../data/emergency';
 
-interface Props { s: Service; level?: 'h3' | 'h4'; uid: string }
-const { s, level = 'h3', uid } = Astro.props;
+interface Props { s: Service; level?: 'h3' | 'h4'; uid: string; /** 번호 복사 버튼 (상세 페이지의 '긴급 연락처와 도움말'에서는 끔 — 좁은 칸에서 번호와 겹침, D-043) */ copy?: boolean }
+const { s, level = 'h3', uid, copy = true } = Astro.props;
 const o = ORGS[s.org];
 const H = level;
 const qh = quickHours(s);
@@ -40,7 +40,7 @@ const qh = quickHours(s);
       ) : o.tel && (
         <a class="call btn-accent" href={telHref(o.tel)} aria-label={`${o.name} ${o.number} 전화하기`}>☎ 전화하기</a>
       )}
-      <button type="button" class="copy btn-accent" data-copy-num={o.number}>번호 복사</button>
+      {copy && <button type="button" class="copy btn-accent" data-copy-num={o.number}>번호 복사</button>}
     </div>
   </div>
 

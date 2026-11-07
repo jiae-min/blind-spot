@@ -1,6 +1,6 @@
 ---
 // 긴급 연락처 카드 (D-024·D-025·D-027)
-// 순서: 상황 제목 → 기관명 → 조건 → [번호 + 가능 시간 | 전화하기] 한 줄(세로 가운데 정렬) → 출처
+// 순서: 상태 표시 줄 → 상황 제목 → 기관명 → 조건 → [번호 + 가능 시간 | 전화하기] 한 줄(세로 가운데 정렬) → 출처
 // 전화 버튼은 tel: 링크(기기의 전화 앱만 열림, 자동 통화 없음). PC용 번호 복사.
 import { AREA_CODES, ORGS, quickHours, telHref, type Service } from '../../data/emergency';
 
@@ -11,23 +11,31 @@ const H = level;
 const qh = quickHours(s);
 ---
 <article class="call-card">
-  {/* 제목 앞 상자: 24시간(강조색 바탕)·문자 가능 / 지역 → 운영 시간 제한(테두리) — 언제 걸 수 있는지를 상황 제목과 함께 먼저 보여 줌 (D-036) */}
-  <H class="c-title">
-    {qh.allDay && <span class="badge badge--24">24시간</span>}
-    {qh.sms && <span class="badge">문자 가능</span>}
-    {s.region && <span class="badge">{s.region}</span>}
-    {!qh.allDay && <span class="badge">운영 시간 제한</span>}
-    <span>{s.title}</span>
-  </H>
-  <p class="c-org">{o.name}</p>
-  {/* 시간이 정해진 곳: 위쪽 조건 자리에 시간대를 한 줄씩 (D-029) */}
-  {!qh.allDay && (
-    <div class="when-box">
-      <p class="when-head">{qh.text}</p>
-      <ul class="notes">{qh.parts.map((t) => <li>{t}</li>)}</ul>
+  {/* 핵심 정보: 상태 표시 줄 → 상황 제목 → 기관명. 상태 표시(24시간·운영 시간 제한 등)는 언제나 제목 윗줄에 따로 (D-036) */}
+  <div class="c-core">
+    <H class="c-title">
+      <span class="badges">
+        {qh.allDay && <span class="badge badge--24">24시간</span>}
+        {qh.sms && <span class="badge">문자 가능</span>}
+        {s.region && <span class="badge">{s.region}</span>}
+        {!qh.allDay && <span class="badge">운영 시간 제한</span>}
+      </span>
+      <span class="t">{s.title}</span>
+    </H>
+    <p class="c-org">{o.name}</p>
+  </div>
+  {/* 시간이 정해진 곳: 시간대를 한 줄씩 (D-029) · 조건 */}
+  {(!qh.allDay || s.notes) && (
+    <div class="c-body">
+      {!qh.allDay && (
+        <div class="when-box">
+          <p class="when-head">{qh.text}</p>
+          <ul class="notes">{qh.parts.map((t) => <li>{t}</li>)}</ul>
+        </div>
+      )}
+      {s.notes && <ul class="notes">{s.notes.map((n) => <li>{n}</li>)}</ul>}
     </div>
   )}
-  {s.notes && <ul class="notes">{s.notes.map((n) => <li>{n}</li>)}</ul>}
 
   {/* 번호를 전화 버튼 바로 옆에: 왼쪽 번호(24시간이면 그 표시), 오른쪽 버튼(오른손 엄지) */}
   <div class="call-row">
@@ -64,21 +72,25 @@ const qh = quickHours(s);
 <style>
   /* 카드 너비에 맞춰 글자·버튼을 줄임(cqi = 카드 너비의 1%). 어떤 글자도 14px 밑으로는 줄이지 않음 */
   .call-card { container-type: inline-size; border: 1px solid var(--line); background: #fff; padding: var(--space-4); display: flex; flex-direction: column; }
-  .c-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 20px; line-height: 1.35; margin: 0 0 var(--space-1); }
-  .c-org { margin: 0 0 var(--space-3); font-size: 17px; }
+  /* 간격 위계 (가까울수록 한 묶음): 목록 항목 4px < 제목·기관명 4~8px < 묶음 사이 12px < 핵심 정보→목록 24px */
+  .c-core { margin-bottom: var(--space-5); }
+  .c-title { margin: 0; font-size: 20px; line-height: 1.35; }
+  .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: var(--space-2); }
+  .t { display: block; }
+  .c-org { margin: var(--space-1) 0 0; font-size: 17px; line-height: 1.5; }
   .badge { flex: none; font-size: 15px; line-height: 1.6; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
   /* 24시간: 강조색 중 흰 글자 대비가 충분한 진한 주황(5.2:1) */
   .badge--24 { background: var(--color-accent-text); border-color: var(--color-accent-text); color: var(--color-on-strong); }
-  /* 카드 본문 17px (D-030): 기관명·조건·전화 가능 시간 제목과 항목 모두 같은 크기 */
-  .notes { list-style: none; margin: 0 0 var(--space-3); padding: 0; font-size: 17px; }
-  .when-head { margin: 0 0 2px; font-size: 17px; font-weight: 700; color: var(--color-brand-secondary-strong); }
-  .when-box .notes { margin-bottom: var(--space-2); }
-  .notes li { position: relative; padding: 3px 0 3px 16px; }
-  .notes li::before { content: ''; position: absolute; left: 2px; top: 14px; width: 5px; height: 5px; background: var(--color-text); }
+  /* 카드 본문 17px (D-030) */
+  .c-body { display: grid; gap: var(--space-3); margin-bottom: var(--space-5); }
+  .when-head { margin: 0 0 var(--space-1); font-size: 17px; line-height: 1.5; font-weight: 700; color: var(--color-brand-secondary-strong); }
+  .notes { list-style: none; margin: 0; padding: 0; font-size: 17px; line-height: 1.5; display: grid; gap: var(--space-1); }
+  .notes li { position: relative; padding-left: 16px; }
+  .notes li::before { content: ''; position: absolute; left: 2px; top: .6em; width: 5px; height: 5px; background: var(--color-text); }
 
   .call-row {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    margin-top: auto; padding-top: var(--space-3); border-top: 1px dashed var(--line);
+    margin-top: auto; padding-top: var(--space-4); border-top: 1px dashed var(--line);
   }
   .num-block { display: flex; flex-direction: column; min-width: 0; }
   .num { font-size: clamp(18px, 7.5cqi, 24px); line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }

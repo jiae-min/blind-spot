@@ -1,33 +1,26 @@
 ---
-// 하단 '긴급 연락처와 도움말' (v0.5 후속, D-039) — 결과·타임라인 뒤
-// 통합: 늘 보이는 긴급번호(112·119·1366) → (폭력 케이스) 지역 연결 센터 → 상황별 연락처 아코디언
-//       → 기관별 전화 예시(괄호에 넣을 말 = 전화할 때 전하면 좋은 내용을 합침, D-041) → 전화가 어려울 때 대안
+// 하단 '긴급 연락처와 도움말' (v0.5 후속, D-039·D-044) — 결과·타임라인 뒤
+// 단기: [긴급번호 112·119·1366 + 바로 아래 전화 문장(괄호에 넣을 말 포함)] → (폭력) 지역 연결 센터 → 전화가 어려울 때 대안
+// 장기: 급한 문의용 구역은 두지 않음. (폭력) 지역 연결 센터만. 상황별 연락처 아코디언은 정보량만 늘려서 뺌 — 전체는 긴급 도움 페이지에
 // 상단 헤더의 '긴급 도움' 버튼은 어떤 답을 해도 숨기지 않음. 이 구역은 사용자가 직접 접을 수만 있음.
 // 신고 의사로 이 구역을 자동으로 숨길지는 운영자 결정 대기 (docs/v0.5-followup/DECISIONS_AND_OPEN_ISSUES.md §3) — 구현하지 않음.
 import EmergencyTop from '../wf/EmergencyTop.astro';
-import CallCategories from '../wf/CallCategories.astro';
 import ContactScript from '../wf/ContactScript.astro';
 import Alternatives from '../wf/Alternatives.astro';
 import CenterMatch from './CenterMatch.astro';
-import { href, type CaseDef, type CaseId } from '../../data/cases';
+import type { CaseDef, CaseId } from '../../data/cases';
 interface Props { c: CaseDef; horizon: string }
 const { c, horizon } = Astro.props;
-// 케이스별로 먼저 보여 줄 분류 (data/emergency.ts의 분류 ID). 전체는 긴급 도움 페이지에.
-const CATS: Record<CaseId, string[]> = {
-  'domestic-violence': ['violence', 'legal', 'migrant', 'youth'],
-  'sexual-violence': ['sexual', 'violence', 'legal', 'youth'],
-  'family-care': ['welfare', 'abuse', 'youth'],
-  'livelihood-education': ['welfare', 'legal', 'youth'],
-  'reclusive-youth': ['welfare', 'youth'],
-};
 const AGENCIES: Record<CaseId, string[]> = {
-  'domestic-violence': ['1366', '해바라기센터'],
-  'sexual-violence': ['1366', '해바라기센터'],
-  'family-care': ['129 보건복지상담센터'],
+  // 바로 위 긴급번호 카드(112·119·1366)와 같은 순서로
+  'domestic-violence': ['112', '119', '1366', '해바라기센터'],
+  'sexual-violence': ['112', '119', '1366', '해바라기센터'],
+  'family-care': ['119', '129 보건복지상담센터'],
   'livelihood-education': ['129 보건복지상담센터'],
   'reclusive-youth': ['129 보건복지상담센터'],
 };
 const violence = c.id === 'domestic-violence' || c.id === 'sexual-violence';
+const short = horizon === 'short-term';
 // 괄호에 넣을 말 — 전화할 때 전하면 좋은 내용(현재 지역·위험 여부·필요한 지원·동반자/부상자·안전한 회신 방법)을 문장 속 괄호에 맞춤
 const GUIDE = [
   { tok: '(현재 위치)', text: '시·군·구 정도면 충분해요. 정확한 주소를 말하기 어려우면 근처 건물이나 역 이름도 괜찮아요.' },
@@ -37,47 +30,43 @@ const GUIDE = [
 ];
 const p = `${c.id}-${horizon}`;
 ---
-<div class="sec-group ch" data-ch>
-  <section id="contacts" class="sec tick ch-top" tabindex="-1">
-    <div class="ch-head">
-      <h2>긴급 연락처와 도움말</h2>
-      <button type="button" class="ch-toggle btn-accent" aria-expanded="true" aria-controls={`${p}-ch-body`} data-ch-toggle>이 구역 접기</button>
-    </div>
-    <div data-ch-part>
-      <p class="desc ch-lead">지금 바로 연락할 수 있는 곳이에요. 신고하지 않아도 상담부터 받을 수 있는 곳도 있어요.</p>
-      <EmergencyTop prefix={`${p}-top`} copy={false} />
-    </div>
-  </section>
+{short ? (
+  <div class="sec-group ch" data-ch>
+    {/* 단기: 긴급번호 바로 아래 전화 문장 — 번호를 보고 바로 말할 수 있게 한 구역에 (D-044) */}
+    <section id="contacts" class="sec tick ch-top" tabindex="-1">
+      <div class="ch-head">
+        <h2>긴급 연락처와 도움말</h2>
+        <button type="button" class="ch-toggle btn-accent" aria-expanded="true" aria-controls={`${p}-ch-body`} data-ch-toggle>이 구역 접기</button>
+      </div>
+      <div data-ch-part>
+        <p class="desc ch-lead">지금 바로 연락할 수 있는 곳이에요. 신고하지 않아도 상담부터 받을 수 있는 곳도 있어요.</p>
+        <EmergencyTop prefix={`${p}-top`} copy={false} />
+        <h3 class="ch-h3">전화할 때 이렇게 말해 보세요</h3>
+        <p class="desc sub">거는 곳을 고르고, 주황색 괄호 부분만 내 상황에 맞게 바꿔 말해 보세요. 필요 없는 부분은 빼도 괜찮아요.</p>
+        <ContactScript agencies={AGENCIES[c.id]} guide={GUIDE} sensitive={c.sensitive} />
+      </div>
+    </section>
 
-  {/* 긴급 도움 페이지처럼 주제마다 구역 상자 하나 */}
-  <div class="sec-group" id={`${p}-ch-body`} data-ch-part>
-    {violence && (
+    <div class="sec-group" id={`${p}-ch-body`} data-ch-part>
+      {violence && (
+        <section class="sec tick">
+          <h2>지역에 연결해 둔 해바라기센터</h2>
+          <CenterMatch child={c.id === 'sexual-violence'} />
+        </section>
+      )}
       <section class="sec tick">
-        <h2>지역에 연결해 둔 해바라기센터</h2>
-        <CenterMatch child={c.id === 'sexual-violence'} />
+        <h2>연결이 안 되거나 전화가 어려울 때</h2>
+        <Alternatives />
       </section>
-    )}
-
-    <section class="sec tick">
-      <h2>상황별 연락처</h2>
-      <p class="desc sub">필요한 분류를 눌러 펼쳐 보세요. 여러 개를 함께 열 수 있어요.</p>
-      <CallCategories ids={CATS[c.id]} prefix={p} copy={false} />
-      <p class="more"><a href={href('help/#contacts')}>모든 상황별 연락처 보기 →</a></p>
-    </section>
-
-    <section class="sec tick">
-      <h2>전화할 때 이렇게 말해 보세요</h2>
-      <p class="desc sub">거는 곳을 고르고, 주황색 괄호 부분만 내 상황에 맞게 바꿔 말해 보세요. 필요 없는 부분은 빼도 괜찮아요.</p>
-      <ContactScript agencies={AGENCIES[c.id]} guide={GUIDE} sensitive={c.sensitive} />
-    </section>
-
-
-    <section class="sec tick">
-      <h2>연결이 안 되거나 전화가 어려울 때</h2>
-      <Alternatives />
-    </section>
+    </div>
   </div>
-</div>
+) : violence && (
+  /* 장기: 급한 문의용 구역(긴급 연락처·전화 문장·대안)은 두지 않고, 지역에 연결된 센터만 (D-044) */
+  <section id="centers" class="sec tick ch-top">
+    <h2>지역에 연결해 둔 해바라기센터</h2>
+    <CenterMatch child={c.id === 'sexual-violence'} />
+  </section>
+)}
 
 <script>
   document.querySelectorAll<HTMLElement>('[data-ch]').forEach((sec) => {
@@ -106,5 +95,5 @@ const p = `${c.id}-${horizon}`;
   .ch-lead { margin: 0 0 var(--space-5); }
   .ch .sec > h2 { margin-bottom: var(--space-3); }
   .sub { margin: 0 0 var(--space-4); }
-  .more { margin: var(--space-3) 0 0; font-weight: 700; }
+  .ch-h3 { font-size: 20px; margin: var(--space-7) 0 var(--space-3); }
 </style>

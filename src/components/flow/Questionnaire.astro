@@ -12,7 +12,7 @@ import ResultCard from './ResultCard.astro';
 import { DANGER, HORIZON_NOTE, flagsFor, flowFor, type Opt, type Question } from '../../data/questionnaire';
 import { contentForOption } from '../../data/content';
 import { CATEGORIES, TOP, telHref } from '../../data/emergency';
-import type { CaseDef, Horizon } from '../../data/cases';
+import { href, type CaseDef, type Horizon } from '../../data/cases';
 
 interface Props { c: CaseDef; h: Horizon; title: string }
 const { c, h, title } = Astro.props;
@@ -22,13 +22,16 @@ const uid = `${c.id}-${h}`;
 // '아직 모르겠어요'를 골랐을 때: 어떤 도움이 맞을지 같이 찾아 주는 곳 (운영자 확정 연락처, data/emergency.ts)
 const guideCall = c.sensitive ? TOP[2] : CATEGORIES.find((x) => x.id === 'welfare')!.items[0];
 const results = (o: Opt) => contentForOption(c.id, h, o.id);
-// 칸 수: 짧은 말은 여러 칸, 문장은 PC 2칸·모바일 1칸
-const cols = (opts: Opt[]) => {
-  const m = Math.max(...opts.map((o) => o.label.length)), n = opts.length;
-  return m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
-};
 // 답을 보류하는 선택지(답하지 않을래요·선택하지 않을래요·모르겠어요·무응답 등)는 점선 상자로 따로 (D-043)
 const SOFT = /답하지 않|선택하지 않|고르지 않|무응답|모르겠|^모름$/;
+// 칸 수 (보류 답은 따로 줄을 만들어서 빼고 셈): 짧은 말은 여러 칸, 문장은 PC 2칸·모바일 1칸.
+// 다만 3·9개처럼 홀수이면서 3으로 나뉘면 PC 한 줄에 3칸 — 마지막 줄이 한 칸만 남지 않게 (D-044). 5·7개 등은 그대로
+const cols = (all: Opt[]) => {
+  const opts = all.filter((o) => !SOFT.test(o.label));
+  const m = Math.max(...opts.map((o) => o.label.length)), n = opts.length;
+  const base = m <= 7 ? { cols: Math.min(5, n), colsM: Math.min(3, n) } : m <= 14 ? { cols: Math.min(3, n), colsM: 2 } : { cols: 2, colsM: 1 };
+  return n % 2 === 1 && n % 3 === 0 ? { ...base, cols: 3 } : base;
+};
 const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.label, exclusive: o.exclusive, soft: SOFT.test(o.label) }));
 ---
 <div class="flow sec-group" data-flow data-flags={JSON.stringify(flags)}>
@@ -47,8 +50,8 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
       ) : q.type === 'age' ? (
         <fieldset class="choice" data-q={q.id}>
           <legend>{q.title}</legend>
-          <p class="hint">비워 두어도 괜찮아요. 나이 조건이 있는 지원만 '추가 확인 필요'로 남겨 둬요.</p>
-          <label class="age"><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" aria-label="나이" /><span>세</span></label>
+          <p class="hint">만 나이로 적어 주세요. 비워 두어도 괜찮아요. 나이 조건이 있는 지원만 '추가 확인 필요'로 남겨 둬요.</p>
+          <label class="age"><span>만</span><input type="number" inputmode="numeric" min="0" max="120" data-age autocomplete="off" aria-label="만 나이" /><span>세</span></label>
         </fieldset>
       ) : q.type === 'help' ? (
         <fieldset class="choice q-help" data-q={q.id}>
@@ -66,7 +69,7 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
                         <label class="opt"><input type="checkbox" value={o.id} data-opt data-group={g.id} autocomplete="off" /><span>{o.label}</span></label>
                         <div class="res" data-res hidden>
                           {items.length > 0 ? items.map((it) => <ResultCard item={it} />) : (
-                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. 아래 <a href="#contacts">긴급 연락처와 도움말</a>의 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
+                            <p class="empty">이 항목과 연결된 <strong>확인된 제도 정보는 아직 게시 전</strong>이에요. 지원이 없다는 뜻은 아니에요. {h === 'short-term' ? <>아래 <a href="#contacts">긴급 연락처와 도움말</a>의</> : <a href={href('help/')}>긴급 도움 페이지</a>} 상담기관에 이 내용을 그대로 물어볼 수 있어요.</p>
                           )}
                         </div>
                       </>
@@ -96,9 +99,11 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
                   options={asChoice(q)} {...cols(q.options)} />
           {q.options.filter((o) => DANGER[o.id]).map((o) => (
             <p class="danger" data-danger-for={o.id} hidden>
-              <span>{DANGER[o.id].label}</span>
-              <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
-              <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+              <span class="danger-t">{DANGER[o.id].label}</span>
+              <span class="danger-acts">
+                <a class="call" href={telHref(DANGER[o.id].tel)}>☎ {DANGER[o.id].tel} 전화하기</a>
+                <a class="more" href="#contacts">다른 연락처 보기 ↓</a>
+              </span>
             </p>
           ))}
         </>
@@ -245,7 +250,9 @@ const asChoice = (q: Question) => q.options.map((o) => ({ value: o.id, label: o.
   .flow :global(.choice > legend.sr-only) { margin: -1px; }
   .flow :global(.choice > .hint) { margin: 0 0 var(--space-4); font-size: 15px; }
   /* 위험 응답 → 긴급번호 */
-  .danger { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: var(--space-3) 0 0; padding: 12px 16px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
+  /* 안내 문장은 왼쪽, 전화 버튼·다른 연락처는 오른쪽 (D-044) */
+  .danger-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-left: auto; }
+  .danger { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin: var(--space-3) 0 0; padding: 12px 16px; background: var(--color-emergency); color: var(--color-on-strong); font-weight: 700; }
   .danger[hidden] { display: none; }
   .danger .more { color: var(--color-on-strong); }
   .danger .call {

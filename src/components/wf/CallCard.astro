@@ -11,11 +11,14 @@ const H = level;
 const qh = quickHours(s);
 ---
 <article class="call-card">
-  <H class="c-title">{s.region && <><span class="region">{s.region}</span> </>}{s.title}</H>
-  <p class="c-org">
-    {o.region && <span class="region">{o.region}</span>}
-    <span>{o.name}</span>
-  </p>
+  {/* 제목 앞 상자: 지역(테두리), 24시간(강조색 바탕)·문자 가능(테두리) — 언제 걸 수 있는지를 상황 제목과 함께 먼저 보여 줌 (D-036) */}
+  <H class="c-title">
+    {qh.allDay && <span class="badge badge--24">24시간</span>}
+    {qh.sms && <span class="badge">문자 가능</span>}
+    {s.region && <span class="badge">{s.region}</span>}
+    <span>{s.title}</span>
+  </H>
+  <p class="c-org">{o.name}</p>
   {/* 시간이 정해진 곳: 위쪽 조건 자리에 시간대를 한 줄씩 (D-029) */}
   {!qh.allDay && (
     <div class="when-box">
@@ -29,7 +32,6 @@ const qh = quickHours(s);
   <div class="call-row">
     <div class="num-block">
       <strong class="num">{o.number}</strong>
-      {qh.allDay && <span class="when">{qh.text}</span>}
     </div>
     <div class="acts">
       {s.areaCode ? (
@@ -61,10 +63,11 @@ const qh = quickHours(s);
 <style>
   /* 카드 너비에 맞춰 글자·버튼을 줄임(cqi = 카드 너비의 1%). 어떤 글자도 14px 밑으로는 줄이지 않음 */
   .call-card { container-type: inline-size; border: 1px solid var(--line); background: #fff; padding: var(--space-4); display: flex; flex-direction: column; }
-  .c-title { font-size: 20px; line-height: 1.35; margin: 0 0 var(--space-1); }
-  .c-title .region { vertical-align: 2px; }
-  .c-org { margin: 0 0 var(--space-3); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 17px; }
-  .region { font-size: 15px; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
+  .c-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 20px; line-height: 1.35; margin: 0 0 var(--space-1); }
+  .c-org { margin: 0 0 var(--space-3); font-size: 17px; }
+  .badge { flex: none; font-size: 15px; line-height: 1.6; font-weight: 700; padding: 0 8px; border: 1px solid var(--color-text); }
+  /* 24시간: 강조색 중 흰 글자 대비가 충분한 진한 주황(5.2:1) */
+  .badge--24 { background: var(--color-accent-text); border-color: var(--color-accent-text); color: var(--color-on-strong); }
   /* 카드 본문 17px (D-030): 기관명·조건·전화 가능 시간 제목과 항목 모두 같은 크기 */
   .notes { list-style: none; margin: 0 0 var(--space-3); padding: 0; font-size: 17px; }
   .when-head { margin: 0 0 2px; font-size: 17px; font-weight: 700; color: var(--color-brand-secondary-strong); }
@@ -79,7 +82,6 @@ const qh = quickHours(s);
   .num-block { display: flex; flex-direction: column; min-width: 0; }
   .num { font-size: clamp(18px, 7.5cqi, 24px); line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }
   /* 번호 아래 보조 문구: 번호보다 확실히 작고 가볍게 (사이트 최소 14px) */
-  .when { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--color-brand-secondary-strong); }
   .acts { display: flex; align-items: center; gap: 6px; flex: none; }
   .call {
     display: inline-flex; align-items: center; justify-content: center; min-height: 48px; white-space: nowrap;

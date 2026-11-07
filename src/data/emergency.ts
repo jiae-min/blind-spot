@@ -132,10 +132,10 @@ export const telHref = (n: string) => `tel:${n.replace(/[^0-9]/g, '')}`;
 export const smsHref = (n: string) => `sms:${n.replace(/[^0-9#]/g, '').replace('#', '%23')}`;
 
 /** 카드 번호 옆 한 줄 표시: 24시간이면 '24시간 전화(, 문자) 가능', 아니면 전화 가능 시간 문장 (표 대신, D-025) */
-export function quickHours(s: Service): { allDay: boolean; text: string; parts: string[] } {
+export function quickHours(s: Service): { allDay: boolean; sms: boolean; text: string; parts: string[] } {
   const phone = s.hours.filter((h) => h.channel === 'phone');
   const phone24 = phone.length > 0 && phone.every((h) => h.allDay);
   const sms24 = ALTERNATIVES.some((a) => a.org === s.org && a.kind === 'sms' && /24시간/.test(a.note));
-  if (phone24) return { allDay: true, text: sms24 ? '24시간 전화, 문자 가능' : '24시간 전화 가능', parts: [] };
-  return { allDay: false, text: '전화 가능 시간', parts: phone.flatMap((h) => h.parts) };
+  if (phone24) return { allDay: true, sms: sms24, text: sms24 ? '24시간 전화, 문자 가능' : '24시간 전화 가능', parts: [] };
+  return { allDay: false, sms: false, text: '전화 가능 시간', parts: phone.flatMap((h) => h.parts) };
 }

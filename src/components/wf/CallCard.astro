@@ -11,11 +11,12 @@ const H = level;
 const qh = quickHours(s);
 ---
 <article class="call-card">
-  {/* 제목 앞 상자: 지역(테두리), 24시간(강조색 바탕)·문자 가능(테두리) — 언제 걸 수 있는지를 상황 제목과 함께 먼저 보여 줌 (D-036) */}
+  {/* 제목 앞 상자: 24시간(강조색 바탕)·문자 가능 / 지역 → 운영 시간 제한(테두리) — 언제 걸 수 있는지를 상황 제목과 함께 먼저 보여 줌 (D-036) */}
   <H class="c-title">
     {qh.allDay && <span class="badge badge--24">24시간</span>}
     {qh.sms && <span class="badge">문자 가능</span>}
     {s.region && <span class="badge">{s.region}</span>}
+    {!qh.allDay && <span class="badge">운영 시간 제한</span>}
     <span>{s.title}</span>
   </H>
   <p class="c-org">{o.name}</p>

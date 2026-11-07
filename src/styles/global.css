@@ -10,7 +10,7 @@
   --color-on-strong: #fbfaf8;
   --color-emergency: #333823;
 
-  /* 기기 기본 글꼴 (D-031): iPhone·Mac = Apple SD Gothic Neo, Windows = 맑은 고딕, Android = Noto Sans(본고딕). 내려받는 글꼴 없음 */
+  /* 휴대폰·태블릿: 기기 기본 글꼴 (D-031) — iPhone·Mac = Apple SD Gothic Neo, Windows = 맑은 고딕, Android = Noto Sans(본고딕). PC는 아래 @media에서 Pretendard (D-042) */
   --font: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif;
   /* 로고는 Kanit 400 모양의 SVG(src/data/logo.ts, D-031) — 글꼴 파일을 받지 않음 */
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
@@ -21,6 +21,14 @@
   --ease: cubic-bezier(.65, 0, .35, 1);
   --t: .4s;                              /* 호버 전환 시간 */
   --content-max: 1200px;
+}
+
+/* PC(폭 1025px 이상 + 마우스·트랙패드)만 Pretendard (D-042). 휴대폰·태블릿은 기기 기본 글꼴 그대로라 글꼴 파일을 받지 않음.
+   글꼴을 받는 동안은 기본 글꼴로 먼저 보여 줌(font-display: swap). 선언은 styles/pretendard.css */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  :root {
+    --font: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', Roboto, 'Noto Sans KR', 'Noto Sans CJK KR', sans-serif;
+  }
 }
 
 *, *::before, *::after { box-sizing: border-box; }

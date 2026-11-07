@@ -8,7 +8,7 @@
 
 - [Astro](https://astro.build) 정적 사이트 (서버·데이터베이스 없음)
 - 배포: Cloudflare Pages (GitHub 연동)
-- 글꼴: 기기 기본 글꼴(내려받는 글꼴 없음). 로고만 Kanit 모양을 SVG로 넣음 — 페이지당 첫 방문 약 15~18KB
+- 글꼴: 휴대폰·태블릿은 기기 기본 글꼴(내려받는 글꼴 없음), PC(폭 1025px 이상 + 마우스)만 Pretendard Variable — 사이트에 직접 넣은 글자 범위별 조각 중 페이지에 쓰인 것만 받음(`public/fonts/`). 로고만 Kanit 모양을 SVG로 넣음
 
 ## 폴더 구조
 

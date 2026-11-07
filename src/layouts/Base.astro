@@ -3,7 +3,7 @@
 import { LOGO } from '../data/logo';
 import '../styles/global.css';
 import { CASES, HORIZONS, href } from '../data/cases';
-import { INFO_PAGES, CONTACT_EMAIL, DISCLAIMER } from '../data/info';
+import { INFO_PAGES, DISCLAIMER } from '../data/info';
 import { SHOW_DRAFTS } from '../data/content';
 
 interface Props {
@@ -125,7 +125,6 @@ const FOOT_GROUPS = [
                 return <li><a class="foot-link btn-accent" href={href(`${p.id}/`)}>{p.title} <span class="arrow" aria-hidden="true">→</span></a></li>;
               })}
             </ul>
-            {g.head === 'Contact' && <p class="foot-mail"><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL.split('@')[0]}<wbr />@{CONTACT_EMAIL.split('@')[1]}</a></p>}
           </nav>
         ))}
       </div>
@@ -280,7 +279,6 @@ const FOOT_GROUPS = [
   .foot-head { margin-bottom: var(--space-3) !important; color: var(--color-accent-text); }
   .foot-cell ul { list-style: none; margin: 0; padding: 0; }
   .foot-link { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 10px; margin: 0 -10px; font-weight: 500; text-decoration: none; }
-  .foot-mail { margin-top: var(--space-3) !important; font-size: 14px; }
   .foot-legal { border-top: 1px solid var(--line); padding: var(--space-5) var(--space-4) var(--space-6); }
   .foot-legal p { margin: 0; }
   .legal-title { font-weight: 700; margin-bottom: var(--space-2) !important; }
@@ -290,9 +288,9 @@ const FOOT_GROUPS = [
     .foot-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
     .foot-cell { border-top: 0; border-left: 1px solid var(--line); padding: var(--space-5) var(--space-5) var(--space-6); }
     .foot-cell:first-child { border-left: 0; padding-left: var(--space-6); }
-    /* 칸끼리 줄 맞춤: 1줄 = 로고·머리말(세로 가운데), 2줄 = 링크 목록(윗줄 시작점 같게), 3줄 = 메일 */
-    .foot-grid { grid-template-rows: auto auto auto; }
-    .foot-cell { display: grid; grid-row: span 3; grid-template-rows: subgrid; align-content: start; }
+    /* 칸끼리 줄 맞춤: 1줄 = 로고·머리말(세로 가운데), 2줄 = 링크 목록(윗줄 시작점 같게) */
+    .foot-grid { grid-template-rows: auto auto; }
+    .foot-cell { display: grid; grid-row: span 2; grid-template-rows: subgrid; align-content: start; }
     .foot-logo, .foot-head { align-self: center; }
   }
 
